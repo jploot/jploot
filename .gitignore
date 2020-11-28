@@ -1,0 +1,8 @@
+# Maven related resources
+*.backup
+target/
+
+# Eclipse related resources
+.project
+.classpath
+.settings/
