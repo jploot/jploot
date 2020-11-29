@@ -1,0 +1,22 @@
+package jploot.core.runner.spi;
+
+import java.nio.file.Path;
+
+import jploot.config.model.JplootApplication;
+import jploot.config.model.JplootBase;
+import jploot.config.model.JplootConfig;
+import jploot.core.exceptions.ArtifactFailureType;
+import jploot.core.exceptions.JplootArtifactFailure;
+
+public class PathHandler {
+
+	public void isValidArtifact(Path file, JplootApplication application, JplootConfig config, JplootBase jplootBase)
+			throws JplootArtifactFailure {
+		if (!file.toFile().exists()) {
+			throw new JplootArtifactFailure(ArtifactFailureType.NOT_FOUND, file, application, config, jplootBase);
+		} else if (file.toFile().isFile()) {
+			throw new JplootArtifactFailure(ArtifactFailureType.WRONG_TYPE, file, application, config, jplootBase);
+		}
+	}
+
+}

@@ -11,24 +11,32 @@ import org.slf4j.LoggerFactory;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootBase;
+import jploot.config.model.JplootConfig;
+import jploot.core.exceptions.JplootArtifactFailure;
+import jploot.core.runner.spi.ArtifactResolver;
+import jploot.core.runner.spi.PathHandler;
 
 public class JplootRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootRunner.class);
 
-	public void run(JplootBase jplootBase, JplootApplication application) {
+	public void run(JplootConfig config, JplootBase jplootBase, JplootApplication application) {
 		LOGGER.debug("Running {} in {}", jplootBase, application);
 		// get default runtime
 		JavaRuntime runtime = jplootBase.javaRuntimes().get(0);
 		// lookup jar
-		Path jar = new JplootArtifactResolver().resolve(jplootBase, application);
-		// lookup java
-		Path java = Path.of("bin/java").resolve(runtime.javaHome());
-		List<String> command = new ArrayList<>();
-		command.add(java.toString());
-		command.add("-jar");
-		command.add(jar.toString());
-		LOGGER.debug("Command built: {}", command.stream().collect(Collectors.joining(" ")));
+		try {
+			Path jar = new ArtifactResolver(new PathHandler()).resolve(config, jplootBase, application);
+			// lookup java
+			Path java = Path.of("bin/java").resolve(runtime.javaHome());
+			List<String> command = new ArrayList<>();
+			command.add(java.toString());
+			command.add("-jar");
+			command.add(jar.toString());
+			LOGGER.debug("Command built: {}", command.stream().collect(Collectors.joining(" ")));
+		} catch (JplootArtifactFailure e) {
+			// TODO
+		}
 	}
 
 }
