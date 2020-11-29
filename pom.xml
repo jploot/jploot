@@ -14,6 +14,7 @@
 	<modules>
 		<module>jploot-cli</module>
 		<module>jploot-core</module>
+		<module>jploot-config</module>
 		<module>dependencies</module>
 	</modules>
 
@@ -281,6 +282,47 @@
 						</plugin>
 					</plugins>
 				</pluginManagement>
+			</build>
+		</profile>
+		<profile>
+			<id>jar-immutables</id>
+			<activation>
+				<file>
+					<exists>maven/jar-immutables</exists>
+				</file>
+			</activation>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>org.immutables</groupId>
+						<artifactId>value</artifactId>
+						<version>2.8.2</version>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+			<dependencies>
+				<dependency>
+					<groupId>org.immutables</groupId>
+					<artifactId>value</artifactId>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>${plugin.compiler.version}</version>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.immutables</groupId>
+									<artifactId>value</artifactId>
+									<version>2.8.2</version>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</plugin>
+				</plugins>
 			</build>
 		</profile>
 	</profiles>

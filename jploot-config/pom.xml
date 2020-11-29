@@ -10,17 +10,9 @@
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>jploot-core</artifactId>
+	<artifactId>jploot-config</artifactId>
 	<packaging>jar</packaging>
 
-	<name>jploot-core</name>
-
-	<dependencies>
-		<dependency>
-			<groupId>jploot</groupId>
-			<artifactId>jploot-config</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
+	<name>jploot-config</name>
 
 </project>

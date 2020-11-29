@@ -27,6 +27,11 @@
 			<version>${project.version}</version>
 			<type>pom</type>
 		</dependency>
+		<dependency>
+			<groupId>jploot</groupId>
+			<artifactId>jploot-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>
