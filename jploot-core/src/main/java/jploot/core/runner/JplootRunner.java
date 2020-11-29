@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;
-import jploot.core.exceptions.JplootArtifactFailure;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
 

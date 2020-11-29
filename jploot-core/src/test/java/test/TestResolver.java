@@ -1,7 +1,6 @@
 package test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -12,10 +11,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import jploot.config.exceptions.JplootArtifactFailure;
+import jploot.config.model.ArtifactLookups;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.JplootBase;
-import jploot.core.exceptions.JplootArtifactFailure;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
 
@@ -35,18 +35,27 @@ class TestResolver extends AbstractTest {
 
 	@Test
 	void testResolve() throws JplootArtifactFailure {
-		Path artifactPath = resolver.resolve(config, config.jplootBase(), application);
+		ArtifactLookups lookups = resolver.resolve(config, config.jplootBase(), application);
 		
 		// check call and context args
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));
 		
 		// check artifact path
-		assertThat(artifactPath.getFileName())
-			.describedAs("%s filename", artifactPath)
-			.hasToString(artifactFilename);
-		assertThat(artifactPath)
-			.describedAs("%s folder", artifactPath)
-			.hasParentRaw(jplootBaseLocation);
+		assertThat(lookups.failedLookups()).isEmpty();
+		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
+			assertThat(lookup.path())
+				.describedAs("%s path attribute", lookup)
+				.isPresent();
+			
+			Path path = lookup.path().get();
+			
+			assertThat(path)
+				.describedAs("%s::path -> %s", lookup, path)
+				.hasFileName(artifactFilename);
+			assertThat(path)
+				.describedAs("%s::path -> %s", lookup, path)
+				.hasParentRaw(jplootBaseLocation);
+		});
 	}
 
 	@Test
@@ -54,10 +63,15 @@ class TestResolver extends AbstractTest {
 		JplootArtifactFailure exception = mock(JplootArtifactFailure.class);
 		doThrow(exception).when(pathHandler)
 			.isValidArtifact(any(), any(), any(), any());
-		assertThatThrownBy(
-				() -> resolver.resolve(config, base, application),
-				"resolve(%s, %s, %s) thrown exception", config, base, application)
-			.isSameAs(exception);
+		ArtifactLookups lookups = resolver.resolve(config, base, application);
+		assertThat(lookups.failedLookups())
+			.describedAs("resolve(%s, %s, %s) -> %s", config, base, application, lookups)
+			.satisfies(l -> {
+				assertThat(l).size().isEqualTo(1);
+				assertThat(l).first().satisfies(e -> {
+					assertThat(e.getValue().failure()).contains(exception);
+				});
+			});
 		
 		// check call and context args
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));

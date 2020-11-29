@@ -1,4 +1,4 @@
-package jploot.core.exceptions;
+package jploot.config.exceptions;
 
 import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;

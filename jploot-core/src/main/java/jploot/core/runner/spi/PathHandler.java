@@ -2,11 +2,11 @@ package jploot.core.runner.spi;
 
 import java.nio.file.Path;
 
+import jploot.config.exceptions.ArtifactFailureType;
+import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;
-import jploot.core.exceptions.ArtifactFailureType;
-import jploot.core.exceptions.JplootArtifactFailure;
 
 public class PathHandler {
 
