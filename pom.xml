@@ -13,6 +13,8 @@
 
 	<modules>
 		<module>jploot-cli</module>
+		<module>jploot-core</module>
+		<module>dependencies</module>
 	</modules>
 
 	<profiles>
@@ -68,7 +70,74 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>common</id>
+			<id>jar-common</id>
+			<activation>
+				<file>
+					<exists>maven/jar-common</exists>
+				</file>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>jploot</groupId>
+					<artifactId>dependency-logging</artifactId>
+					<type>pom</type>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>jar-test</id>
+			<activation>
+				<file>
+					<exists>maven/jar-test</exists>
+				</file>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>jploot</groupId>
+					<artifactId>dependency-test</artifactId>
+					<version>${project.version}</version>
+					<type>pom</type>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>jar-logging-impl-test</id>
+			<activation>
+				<file>
+					<exists>maven/jar-test</exists>
+					<missing>maven/jar-main</missing>
+				</file>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>jploot</groupId>
+					<artifactId>dependency-logging-impl</artifactId>
+					<version>${project.version}</version>
+					<type>pom</type>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>jar-main</id>
+			<activation>
+				<file>
+					<exists>maven/jar-main</exists>
+				</file>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>jploot</groupId>
+					<artifactId>dependency-logging-impl</artifactId>
+					<type>pom</type>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>plugin-common</id>
 			<activation>
 				<file>
 					<exists>pom.xml</exists>
@@ -132,7 +201,30 @@
 			</build>
 		</profile>
 		<profile>
-			<id>jar</id>
+			<id>plugin-test</id>
+			<activation>
+				<file>
+					<exists>maven/plugin-test</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+					</plugin>
+				</plugins>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<artifactId>maven-surefire-plugin</artifactId>
+							<version>${plugin.surefire.version}</version>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+		<profile>
+			<id>plugin-jar</id>
 			<activation>
 				<file>
 					<exists>maven/jar</exists>
@@ -158,33 +250,10 @@
 			</build>
 		</profile>
 		<profile>
-			<id>test</id>
+			<id>plugin-processor</id>
 			<activation>
 				<file>
-					<exists>maven/test</exists>
-				</file>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-surefire-plugin</artifactId>
-					</plugin>
-				</plugins>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<artifactId>maven-surefire-plugin</artifactId>
-							<version>${plugin.surefire.version}</version>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>
-		</profile>
-		<profile>
-			<id>processor</id>
-			<activation>
-				<file>
-					<exists>maven/processor</exists>
+					<exists>maven/plugin-processor</exists>
 				</file>
 			</activation>
 			<build>

@@ -3,11 +3,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!--
-	TODO:
-	* add picocli processor, check impact on startup time
-	-->
-	
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-parent</artifactId>
@@ -15,18 +10,9 @@
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>jploot-cli</artifactId>
+	<artifactId>jploot-core</artifactId>
 	<packaging>jar</packaging>
 
-	<name>jploot-cli</name>
-
-	<dependencies>
-		<dependency>
-			<groupId>jploot</groupId>
-			<artifactId>dependency-picocli</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
-		</dependency>
-	</dependencies>
+	<name>jploot-core</name>
 
 </project>
