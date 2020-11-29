@@ -123,6 +123,10 @@
 							<artifactId>maven-deploy-plugin</artifactId>
 							<version>${plugin.deploy.version}</version>
 						</plugin>
+						<plugin>
+							<artifactId>maven-site-plugin</artifactId>
+							<version>${plugin.site.version}</version>
+						</plugin>
 					</plugins>
 				</pluginManagement>
 			</build>
