@@ -9,5 +9,6 @@
 		<ignoreVersion type="regex">(?i).*[-.]rc([0-9]+)?</ignoreVersion>
 		<ignoreVersion type="regex">(?i).*[-.]pr([0-9]+)?</ignoreVersion>
 		<ignoreVersion type="regex">(?i).*[-.]jre[0-9]+</ignoreVersion>
+		<ignoreVersion type="regex">(?i).*[-.]jdk[0-9]+</ignoreVersion>
 	</ignoreVersions>
 </ruleset>
