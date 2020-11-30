@@ -9,6 +9,8 @@ import static org.mockito.Mockito.verify;
 
 import java.nio.file.Path;
 
+import org.assertj.core.description.Description;
+import org.assertj.core.description.TextDescription;
 import org.junit.jupiter.api.Test;
 
 import jploot.config.exceptions.JplootArtifactFailure;
@@ -39,21 +41,21 @@ class TestResolver extends AbstractTest {
 		
 		// check call and context args
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));
-		
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();
 		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
+			Description desc = StackedDescription.describeAs("%s", lookup);
 			assertThat(lookup.path())
-				.describedAs("%s path attribute", lookup)
+				.as(StackedDescription.describeAs(desc, "path resolved path <%s>", lookup.path()))
 				.isPresent();
 			
 			Path path = lookup.path().get();
 			
 			assertThat(path)
-				.describedAs("%s::path -> %s", lookup, path)
+				.as(StackedDescription.describeAs(desc, "check resolved path <%s> filename", lookup.path()))
 				.hasFileName(artifactFilename);
 			assertThat(path)
-				.describedAs("%s::path -> %s", lookup, path)
+				.as(StackedDescription.describeAs(desc, "check resolved path <%s> folder", lookup.path()))
 				.hasParentRaw(jplootBaseLocation);
 		});
 	}
@@ -75,6 +77,32 @@ class TestResolver extends AbstractTest {
 		
 		// check call and context args
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));
+	}
+
+	// TODO: is it useful ?
+	public static class StackedDescription extends Description {
+		
+		private final Description parent;
+		private final Description description;
+		
+		private StackedDescription(Description parent, String text, Object... args) {
+			super();
+			this.parent = parent;
+			this.description = new TextDescription(text, args);
+		}
+		
+		@Override
+		public String value() {
+			return String.format("%s \n\tfrom %s", description.value(), parent.value());
+		}
+		
+		public static TextDescription describeAs(String text, Object... args) {
+			return new TextDescription(text, args);
+		}
+		
+		public static StackedDescription describeAs(Description parent, String text, Object... args) {
+			return new StackedDescription(parent, text, args);
+		}
 	}
 
 }
