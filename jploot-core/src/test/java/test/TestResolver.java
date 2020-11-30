@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.ArtifactLookups;
+import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.JplootBase;
@@ -26,6 +27,7 @@ class TestResolver extends AbstractTest {
 	private PathHandler pathHandler = mock(PathHandler.class);
 	private ArtifactResolver resolver = new ArtifactResolver(pathHandler);
 	private Path jplootBaseLocation = Path.of("my/location");
+	private Path jplootBaseArtifactsLocation = jplootBaseLocation.resolve("artifacts");
 	private String groupId = "groupId";
 	private String artifactId = "artifactId";
 	private String version = "1.0";
@@ -56,7 +58,8 @@ class TestResolver extends AbstractTest {
 				.hasFileName(artifactFilename);
 			assertThat(path)
 				.as(StackedDescription.describeAs(desc, "check resolved path <%s> folder", lookup.path()))
-				.hasParentRaw(jplootBaseLocation);
+				.hasParentRaw(jplootBaseArtifactsLocation);
+			assertThat(lookup.source()).contains(DependencySource.JPLOOT);
 		});
 	}
 

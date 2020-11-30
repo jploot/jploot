@@ -21,6 +21,8 @@ public class ArtifactResolver {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactResolver.class);
 
+	private static final String JPLOOT_BASE_ARTIFACTS_PATH = "artifacts";
+
 	private final PathHandler pathHandler;
 
 	public ArtifactResolver(PathHandler pathHandler) {
@@ -43,6 +45,7 @@ public class ArtifactResolver {
 					.artifact(artifact);
 			List<Path> fragments = new ArrayList<>();
 			fragments.add(jplootBase.location());
+			fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
 			fragments.add(Path.of(String.format("%s-%s-%s.jar",
 					application.groupId(),
 					application.artifactId(),
