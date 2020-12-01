@@ -30,8 +30,7 @@ public class ArtifactResolver {
 		this.pathHandler = pathHandler;
 	}
 
-	public ArtifactLookups resolve(JplootConfig config, JplootBase jplootBase, JplootApplication application)
-			throws JplootArtifactFailure {
+	public ArtifactLookups resolve(JplootConfig config, JplootBase jplootBase, JplootApplication application) {
 		LOGGER.debug("Resolving {} in {}", application, jplootBase);
 		
 		ImmutableArtifactLookups.Builder artifactLookupsBuilder = ImmutableArtifactLookups.builder()

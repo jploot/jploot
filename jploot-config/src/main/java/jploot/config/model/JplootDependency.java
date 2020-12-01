@@ -13,6 +13,9 @@ public interface JplootDependency extends JplootArtifact {
 	String artifactId();
 	@Override
 	String version();
+	@Override
+	@Value.Auxiliary
+	Set<DependencyType> types();
 	@Value.Auxiliary
 	Set<DependencySource> allowedSources();
 
