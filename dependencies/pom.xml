@@ -20,6 +20,7 @@
 		<module>dependency-logging-impl</module>
 		<module>dependency-test</module>
 		<module>dependency-picocli</module>
+		<module>dependency-yaml</module>
 		
 		<module>log4j2-config-test</module>
 	</modules>

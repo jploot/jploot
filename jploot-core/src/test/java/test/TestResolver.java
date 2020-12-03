@@ -18,7 +18,6 @@ import jploot.config.model.ArtifactLookups;
 import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
-import jploot.config.model.JplootBase;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
 
@@ -32,17 +31,18 @@ class TestResolver extends AbstractTest {
 	private String artifactId = "artifactId";
 	private String version = "1.0";
 	private String artifactFilename = String.format("%s-%s-%s.jar", groupId, artifactId, version);
-	private JplootBase base = jplootBaseBuilder.location(jplootBaseLocation).build();
-	private ImmutableJplootConfig config = jplootConfigBuilder.jplootBase(base).build();
+	private ImmutableJplootConfig config = jplootConfigBuilder
+			.location(jplootBaseLocation.resolve("config.yaml"))
+			.build();
 	private ImmutableJplootApplication application = applicationBuilder.groupId(groupId)
 			.artifactId(artifactId).version(version).build();
 
 	@Test
 	void testResolve() throws JplootArtifactFailure {
-		ArtifactLookups lookups = resolver.resolve(config, config.jplootBase(), application);
+		ArtifactLookups lookups = resolver.resolve(config, application);
 		
 		// check call and context args
-		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config));
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();
 		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
@@ -67,10 +67,10 @@ class TestResolver extends AbstractTest {
 	void testResolveNotFound() throws JplootArtifactFailure {
 		JplootArtifactFailure exception = mock(JplootArtifactFailure.class);
 		doThrow(exception).when(pathHandler)
-			.isValidArtifact(any(), any(), any(), any());
-		ArtifactLookups lookups = resolver.resolve(config, base, application);
+			.isValidArtifact(any(), any(), any());
+		ArtifactLookups lookups = resolver.resolve(config, application);
 		assertThat(lookups.failedLookups())
-			.describedAs("resolve(%s, %s, %s) -> %s", config, base, application, lookups)
+			.describedAs("resolve(%s, %s, %s) -> %s", config, application, lookups)
 			.satisfies(l -> {
 				assertThat(l).size().isEqualTo(1);
 				assertThat(l).first().satisfies(e -> {
@@ -79,7 +79,7 @@ class TestResolver extends AbstractTest {
 			});
 		
 		// check call and context args
-		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config), eq(base));
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config));
 	}
 
 	// TODO: is it useful ?

@@ -5,23 +5,27 @@
 
 	<parent>
 		<groupId>jploot</groupId>
-		<artifactId>jploot-parent</artifactId>
+		<artifactId>dependencies</artifactId>
 		<version>1.0-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>jploot-config</artifactId>
-	<packaging>jar</packaging>
+	<artifactId>dependency-yaml</artifactId>
+	<packaging>pom</packaging>
+
+	<name>dependency-yaml</name>
 
 	<dependencies>
 		<dependency>
-			<groupId>jploot</groupId>
-			<artifactId>dependency-yaml</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>2.12.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>2.12.0</version>
 		</dependency>
 	</dependencies>
-
-	<name>jploot-config</name>
 
 </project>

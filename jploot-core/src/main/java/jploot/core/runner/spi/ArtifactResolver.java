@@ -14,7 +14,6 @@ import jploot.config.model.ImmutableArtifactLookup;
 import jploot.config.model.ImmutableArtifactLookups;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootArtifact;
-import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;
 
 public class ArtifactResolver {
@@ -30,8 +29,8 @@ public class ArtifactResolver {
 		this.pathHandler = pathHandler;
 	}
 
-	public ArtifactLookups resolve(JplootConfig config, JplootBase jplootBase, JplootApplication application) {
-		LOGGER.debug("Resolving {} in {}", application, jplootBase);
+	public ArtifactLookups resolve(JplootConfig config, JplootApplication application) {
+		LOGGER.debug("Resolving {} in {}", application, config);
 		
 		ImmutableArtifactLookups.Builder artifactLookupsBuilder = ImmutableArtifactLookups.builder()
 				.application(application);
@@ -43,7 +42,7 @@ public class ArtifactResolver {
 			ImmutableArtifactLookup.Builder artifactLookupBuilder = ImmutableArtifactLookup.builder()
 					.artifact(artifact);
 			List<Path> fragments = new ArrayList<>();
-			fragments.add(jplootBase.location());
+			fragments.add(config.jplootBase());
 			fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
 			fragments.add(Path.of(String.format("%s-%s-%s.jar",
 					application.groupId(),
@@ -52,7 +51,7 @@ public class ArtifactResolver {
 			
 			Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
 			try {
-				pathHandler.isValidArtifact(path, application, config, jplootBase);
+				pathHandler.isValidArtifact(path, application, config);
 				artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
 			} catch (JplootArtifactFailure failure) {
 				artifactLookupBuilder.failure(failure);

@@ -16,7 +16,6 @@ import jploot.config.model.ArtifactLookups;
 import jploot.config.model.DependencyType;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
-import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
@@ -25,13 +24,13 @@ public class JplootRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootRunner.class);
 
-	public void run(JplootConfig config, JplootBase jplootBase, JplootApplication application) {
-		LOGGER.debug("Running {} in {}", jplootBase, application);
+	public void run(JplootConfig config, JplootApplication application) {
+		LOGGER.debug("Running {} in {}", config, application);
 		// get default runtime
-		JavaRuntime runtime = jplootBase.javaRuntimes().get(0);
+		JavaRuntime runtime = config.runtimes().iterator().next();
 		// lookup jar
 		ArtifactLookups lookups =
-				new ArtifactResolver(new PathHandler()).resolve(config, jplootBase, application);
+				new ArtifactResolver(new PathHandler()).resolve(config, application);
 		if (lookups.failedLookups().count() == 0) {
 			List<String> command = buildCommandLine(runtime, lookups);
 			try {

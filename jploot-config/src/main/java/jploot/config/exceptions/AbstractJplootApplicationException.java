@@ -1,7 +1,6 @@
 package jploot.config.exceptions;
 
 import jploot.config.model.JplootApplication;
-import jploot.config.model.JplootBase;
 import jploot.config.model.JplootConfig;
 
 public class AbstractJplootApplicationException extends AbstractJplootException {
@@ -11,8 +10,8 @@ public class AbstractJplootApplicationException extends AbstractJplootException 
 	private final JplootApplication application;
 
 	public AbstractJplootApplicationException(String message, JplootApplication application, JplootConfig config,
-			JplootBase jplootBase, Throwable e) {
-		super(message, config, jplootBase, e);
+			Throwable e) {
+		super(message, config, e);
 		this.application = application;
 	}
 
