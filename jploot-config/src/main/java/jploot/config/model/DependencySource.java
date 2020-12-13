@@ -4,6 +4,7 @@ public enum DependencySource {
 
 	EMBEDDED,
 	JPLOOT,
+	JPLOOT_EMBEDDED,
 	MAVEN;
 
 }

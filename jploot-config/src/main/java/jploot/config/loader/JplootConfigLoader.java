@@ -1,5 +1,6 @@
 package jploot.config.loader;
 
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -25,6 +26,12 @@ import jploot.config.model.yaml.JplootApplicationFile;
 import jploot.config.model.yaml.JplootConfigFile;
 import jploot.config.model.yaml.JplootDependencyFile;
 
+/**
+ * <p>
+ * Load a jploot config file from a {@link ArgumentConfig}. Default configuration are applied in case configuration
+ * file is incomplete.
+ * </p>
+ */
 public class JplootConfigLoader {
 
 	private final ObjectMapper mapper;
@@ -39,7 +46,7 @@ public class JplootConfigLoader {
 	}
 
 	public JplootConfig load(ArgumentConfig config) {
-		String content = fileLoader.load(config.location());
+		String content = fileLoader.load(config.location(), FileLoader.Mode.YAML);
 		try {
 			JplootConfigFile configFile = mapper.readValue(content, JplootConfigFile.class);
 			ImmutableJplootConfig.Builder builder = ImmutableJplootConfig.builder()
@@ -64,6 +71,13 @@ public class JplootConfigLoader {
 		Set<JavaRuntime> runtimes = new HashSet<>();
 		for (JavaRuntimeFile i : from.runtimes().orElse(new HashSet<>())) {
 			runtimes.add(runtime(i));
+		}
+		if (runtimes.isEmpty()) {
+			runtimes.add(ImmutableJavaRuntime.builder()
+					.name("default")
+					.version("11")
+					.javaHome(Path.of("/usr/lib/jvm/java-11"))
+					.build());
 		}
 		return runtimes;
 	}

@@ -12,12 +12,14 @@ import java.nio.file.Path;
 import org.assertj.core.description.Description;
 import org.assertj.core.description.TextDescription;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.ArtifactLookups;
 import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
+import jploot.config.model.ImmutableJplootDependency;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
 
@@ -32,7 +34,7 @@ class TestResolver extends AbstractTest {
 	private String version = "1.0";
 	private String artifactFilename = String.format("%s-%s-%s.jar", groupId, artifactId, version);
 	private ImmutableJplootConfig config = jplootConfigBuilder
-			.location(jplootBaseLocation.resolve("config.yaml"))
+			.location(jplootBaseLocation.resolve("config.yml"))
 			.build();
 	private ImmutableJplootApplication application = applicationBuilder.groupId(groupId)
 			.artifactId(artifactId).version(version).build();
@@ -42,7 +44,7 @@ class TestResolver extends AbstractTest {
 		ArtifactLookups lookups = resolver.resolve(config, application);
 		
 		// check call and context args
-		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config));
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(application), eq(config));
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();
 		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
@@ -67,7 +69,7 @@ class TestResolver extends AbstractTest {
 	void testResolveNotFound() throws JplootArtifactFailure {
 		JplootArtifactFailure exception = mock(JplootArtifactFailure.class);
 		doThrow(exception).when(pathHandler)
-			.isValidArtifact(any(), any(), any());
+			.isValidArtifact(any(), any(), any(), any());
 		ArtifactLookups lookups = resolver.resolve(config, application);
 		assertThat(lookups.failedLookups())
 			.describedAs("resolve(%s, %s, %s) -> %s", config, application, lookups)
@@ -79,7 +81,45 @@ class TestResolver extends AbstractTest {
 			});
 		
 		// check call and context args
-		verify(pathHandler).isValidArtifact(any(), eq(application), eq(config));
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(application), eq(config));
+	}
+
+	@Test
+	void testResolveJplootEmbedded() throws JplootArtifactFailure {
+		ImmutableJplootDependency dependency = ImmutableJplootDependency.builder()
+			.groupId("test")
+			.artifactId("test")
+			.version("1.0")
+			.addAllowedSources(DependencySource.JPLOOT_EMBEDDED)
+			.build();
+		ImmutableJplootApplication application = applicationBuilder
+				.groupId(groupId)
+				.artifactId(artifactId)
+				.version(version)
+				.addDependencies(dependency).build();
+		ArtifactLookups lookups = resolver.resolve(config, application);
+		
+		// check call and context args
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(application), eq(config));
+		Mockito.verifyNoMoreInteractions(pathHandler);
+		// check artifact path
+		assertThat(lookups.failedLookups()).isEmpty();
+		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
+			Description desc = StackedDescription.describeAs("%s", lookup);
+			assertThat(lookup.path())
+				.as(StackedDescription.describeAs(desc, "path resolved path <%s>", lookup.path()))
+				.isPresent();
+			
+			Path path = lookup.path().get();
+			
+			assertThat(path)
+				.as(StackedDescription.describeAs(desc, "check resolved path <%s> filename", lookup.path()))
+				.hasFileName(artifactFilename);
+			assertThat(path)
+				.as(StackedDescription.describeAs(desc, "check resolved path <%s> folder", lookup.path()))
+				.hasParentRaw(jplootBaseArtifactsLocation);
+			assertThat(lookup.source()).contains(DependencySource.JPLOOT);
+		});
 	}
 
 	// TODO: is it useful ?

@@ -3,6 +3,7 @@ package jploot.config.exceptions;
 import java.nio.file.Path;
 
 import jploot.config.model.JplootApplication;
+import jploot.config.model.JplootArtifact;
 import jploot.config.model.JplootConfig;
 
 public class JplootArtifactFailure extends AbstractJplootApplicationException {
@@ -13,11 +14,15 @@ public class JplootArtifactFailure extends AbstractJplootApplicationException {
 	private final Path resolvedPath;
 
 	public JplootArtifactFailure(ArtifactFailureType type, Path resolvedPath,
-			JplootApplication application, JplootConfig config) {
-		super(String.format("%s in %s not found: %s - %s", application, config, resolvedPath, type),
+			JplootApplication application, JplootArtifact artifact, JplootConfig config) {
+		super(String.format("%s/%s in %s not found: %s - %s", application, artifact, config, resolvedPath, type),
 				application, config, null);
 		this.type = type;
 		this.resolvedPath = resolvedPath;
+	}
+
+	public Path resolvedPath() {
+		return resolvedPath;
 	}
 
 }

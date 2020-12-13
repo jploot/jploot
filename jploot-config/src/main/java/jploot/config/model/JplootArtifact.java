@@ -8,5 +8,6 @@ public interface JplootArtifact {
 	String artifactId();
 	String version();
 	Set<DependencyType> types();
+	Set<DependencySource> allowedSources();
 
 }

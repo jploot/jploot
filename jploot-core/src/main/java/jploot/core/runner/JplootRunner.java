@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import jploot.config.model.ArtifactLookup;
 import jploot.config.model.ArtifactLookups;
+import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
@@ -32,7 +33,7 @@ public class JplootRunner {
 		ArtifactLookups lookups =
 				new ArtifactResolver(new PathHandler()).resolve(config, application);
 		if (lookups.failedLookups().count() == 0) {
-			List<String> command = buildCommandLine(runtime, lookups);
+			List<String> command = buildCommandLine(runtime, application, lookups);
 			try {
 				Process p = new ProcessBuilder(command).inheritIO().start();
 				int status = p.waitFor();
@@ -48,29 +49,39 @@ public class JplootRunner {
 			}
 		} else {
 			for (ArtifactLookup lookup : lookups.failedLookups().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values()) {
-				LOGGER.warn("{} cannot be resolved", lookup.artifact());
+				LOGGER.warn("{} cannot be resolved: {}", lookup.artifact(), lookup.failure().get().resolvedPath());
 			}
 			LOGGER.warn("Application {} cannot be launched as one or more dependencies are not satisfied", application);
 		}
 	}
 
-	private List<String> buildCommandLine(JavaRuntime runtime, ArtifactLookups lookups) {
+	private List<String> buildCommandLine(JavaRuntime runtime, JplootApplication application, ArtifactLookups lookups) {
 		// lookup java
-		Path java = Path.of("bin/java").resolve(runtime.javaHome());
+		Path java = runtime.javaHome().resolve(Path.of("bin/java"));
 		List<String> command = new ArrayList<>();
 		command.add(java.toString());
-		command.add("-jar");
-		command.add(lookups.lookups().get(lookups.application()).path().toString());
+		final boolean applicationInClasspath;
+		if (!application.mainClass().isPresent()) {
+			command.add("-jar");
+			command.add(lookups.lookups().get(lookups.application()).path().get().toString());
+			applicationInClasspath = false;
+		} else {
+			applicationInClasspath = true;
+		}
 		// extract classpath items
 		Set<ArtifactLookup> classpath = lookups.lookups().entrySet().stream()
 				.filter(i ->
-							!lookups.application().equals(i.getKey())
-							&& i.getKey().types().contains(DependencyType.CLASSPATH))
+							(applicationInClasspath || !lookups.application().equals(i.getKey()))
+							&& i.getKey().types().contains(DependencyType.CLASSPATH)
+							&& !DependencySource.JPLOOT_EMBEDDED.equals(i.getValue().source().get()))
 				.map(Map.Entry::getValue)
 				.collect(Collectors.toSet());
 		if (!classpath.isEmpty()) {
 			command.add("-classpath");
-			classpath.stream().forEach(i -> { command.add(i.path().toString()); });
+			classpath.stream().forEach(i -> { command.add(i.path().get().toString()); });
+		}
+		if (application.mainClass().isPresent()) {
+			command.add(application.mainClass().get());
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Command built: {}", command.stream().collect(Collectors.joining(" ")));

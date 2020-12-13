@@ -41,22 +41,27 @@ public class ArtifactResolver {
 		for (JplootArtifact artifact : artifacts) {
 			ImmutableArtifactLookup.Builder artifactLookupBuilder = ImmutableArtifactLookup.builder()
 					.artifact(artifact);
-			List<Path> fragments = new ArrayList<>();
-			fragments.add(config.jplootBase());
-			fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
-			fragments.add(Path.of(String.format("%s-%s-%s.jar",
-					application.groupId(),
-					application.artifactId(),
-					application.version())));
-			
-			Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
-			try {
-				pathHandler.isValidArtifact(path, application, config);
-				artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
-			} catch (JplootArtifactFailure failure) {
-				artifactLookupBuilder.failure(failure);
+			if (artifact.allowedSources().contains(DependencySource.JPLOOT_EMBEDDED)) {
+				// TODO remove placeholder
+				artifactLookupBuilder.source(DependencySource.JPLOOT_EMBEDDED).path(Path.of("placeholder"));
+			} else {
+				List<Path> fragments = new ArrayList<>();
+				fragments.add(config.jplootBase());
+				fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
+				fragments.add(Path.of(String.format("%s-%s-%s.jar",
+						application.groupId(),
+						application.artifactId(),
+						application.version())));
+				
+				Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
+				try {
+					pathHandler.isValidArtifact(path, application, artifact, config);
+					artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
+				} catch (JplootArtifactFailure failure) {
+					artifactLookupBuilder.failure(failure);
+				}
+				artifactLookupsBuilder.putLookups(artifact, artifactLookupBuilder.build());
 			}
-			artifactLookupsBuilder.putLookups(artifact, artifactLookupBuilder.build());
 		}
 		
 		return artifactLookupsBuilder.build();
