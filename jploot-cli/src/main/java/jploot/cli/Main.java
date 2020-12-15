@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import jploot.config.loader.FileLoader;
 import jploot.config.loader.JplootConfigLoader;
 import jploot.config.model.ArgumentConfig;
+import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableArgumentConfig;
 import jploot.config.model.ImmutableJplootApplication;
@@ -51,6 +52,7 @@ public class Main implements Callable<Integer> {
 				.version("1.0-SNAPSHOT")
 				.mainClass("jploot.cli.Test")
 				.addTypes(DependencyType.CLASSPATH)
+				.addAllowedSources(DependencySource.MAVEN)
 				.build();
 		JplootConfig config = new JplootConfigLoader(new FileLoader()).load(args);
 		new JplootRunner().run(config, application);

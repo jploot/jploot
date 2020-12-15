@@ -15,6 +15,7 @@ import jploot.config.model.ImmutableArtifactLookups;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootArtifact;
 import jploot.config.model.JplootConfig;
+import jploot.config.model.MavenRepository;
 
 public class ArtifactResolver {
 
@@ -45,15 +46,20 @@ public class ArtifactResolver {
 				// TODO remove placeholder
 				artifactLookupBuilder.source(DependencySource.JPLOOT_EMBEDDED).path(Path.of("placeholder"));
 			} else {
-				List<Path> fragments = new ArrayList<>();
-				fragments.add(config.jplootBase());
-				fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
-				fragments.add(Path.of(String.format("%s-%s-%s.jar",
-						application.groupId(),
-						application.artifactId(),
-						application.version())));
-				
-				Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
+				Path path;
+				// TODO allow multiple sources
+				DependencySource source = artifact.allowedSources().iterator().next();
+				switch(source) {
+				case JPLOOT:
+					path = resolveJplootPath(config, application);
+					break;
+				case MAVEN:
+					path = resolveMavenPath(config, application);
+					break;
+				default:
+					// TODO manage edge-case
+					throw new IllegalStateException();
+				}
 				try {
 					pathHandler.isValidArtifact(path, application, artifact, config);
 					artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
@@ -65,6 +71,35 @@ public class ArtifactResolver {
 		}
 		
 		return artifactLookupsBuilder.build();
+	}
+
+	private Path resolveJplootPath(JplootConfig config, JplootApplication application) {
+		List<Path> fragments = new ArrayList<>();
+		fragments.add(config.jplootBase());
+		fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
+		fragments.add(Path.of(String.format("%s-%s-%s.jar",
+				application.groupId(),
+				application.artifactId(),
+				application.version())));
+		
+		Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
+		return path;
+	}
+
+	private Path resolveMavenPath(JplootConfig config, JplootApplication application) {
+		// TODO: implement multi-repo
+		MavenRepository repository = config.mavenRepositories().iterator().next();
+		List<Path> fragments = new ArrayList<>();
+		fragments.add(repository.location());
+		fragments.add(Path.of(application.groupId().replace(".", "/")));
+		fragments.add(Path.of(application.artifactId()));
+		fragments.add(Path.of(application.version()));
+		fragments.add(Path.of(String.format("%s-%s.jar",
+				application.artifactId(),
+				application.version())));
+		
+		Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
+		return path;
 	}
 
 }
