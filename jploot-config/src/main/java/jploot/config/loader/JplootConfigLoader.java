@@ -17,14 +17,17 @@ import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.ImmutableJplootDependency;
+import jploot.config.model.ImmutableMavenRepository;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.config.model.JplootDependency;
+import jploot.config.model.MavenRepository;
 import jploot.config.model.yaml.JavaRuntimeFile;
 import jploot.config.model.yaml.JplootApplicationFile;
 import jploot.config.model.yaml.JplootConfigFile;
 import jploot.config.model.yaml.JplootDependencyFile;
+import jploot.config.model.yaml.MavenRepositoryFile;
 
 /**
  * <p>
@@ -53,6 +56,7 @@ public class JplootConfigLoader {
 					.location(config.location());
 			builder.applications(applications(configFile));
 			builder.runtimes(runtimes(configFile));
+			builder.mavenRepositories(mavenRepositories(configFile));
 			return builder.build();
 		} catch (JsonProcessingException|MissingConfigException e) {
 			throw new IllegalStateException(e);
@@ -82,6 +86,20 @@ public class JplootConfigLoader {
 		return runtimes;
 	}
 
+	private Set<MavenRepository> mavenRepositories(JplootConfigFile from) throws MissingConfigException {
+		Set<MavenRepository> repositories = new HashSet<>();
+		for (MavenRepositoryFile i : from.mavenRepositories().orElse(new HashSet<>())) {
+			repositories.add(mavenRepository(i));
+		}
+		if (repositories.isEmpty()) {
+			repositories.add(ImmutableMavenRepository.builder()
+					.name("default")
+					.location(Path.of(System.getProperty("user.home"), ".m2/repository"))
+					.build());
+		}
+		return repositories;
+	}
+
 	private JplootApplication application(JplootApplicationFile from) throws MissingConfigException {
 		ImmutableJplootApplication.Builder builder = ImmutableJplootApplication.builder();
 		builder.dependencies(dependencies(from.dependencies()));
@@ -100,6 +118,13 @@ public class JplootConfigLoader {
 		builder.name(get("name", from.name()));
 		builder.javaHome(get("javaHome", from.javaHome()));
 		builder.version(get("version", from.version()));
+		return builder.build();
+	}
+
+	private MavenRepository mavenRepository(MavenRepositoryFile from) throws MissingConfigException {
+		ImmutableMavenRepository.Builder builder = ImmutableMavenRepository.builder();
+		builder.name(get("name", from.name()));
+		builder.location(get("location", from.location()));
 		return builder.build();
 	}
 
@@ -143,6 +168,8 @@ public class JplootConfigLoader {
 	}
 
 	private class MissingConfigException extends Exception {
+		private static final long serialVersionUID = -8162741671486748445L;
+		
 		final String name;
 		public MissingConfigException(String name) {
 			this.name = name;

@@ -16,5 +16,7 @@ public interface JplootConfigFile {
 	Optional<Set<JavaRuntimeFile>> runtimes();
 	@Value.Auxiliary
 	Optional<Set<JplootApplicationFile>> applications();
+	@Value.Auxiliary
+	Optional<Set<MavenRepositoryFile>> mavenRepositories();
 
 }

@@ -14,14 +14,21 @@ import jploot.config.exceptions.JplootArtifactFailure;
 public interface ArtifactLookup {
 
 	/**
-	 * Target artifact
+	 * Resolved artifact.
 	 */
 	JplootArtifact artifact();
 	/**
-	 * Artifact resolved path
+	 * Artifact resolved path; available only if resolution is not failed.
 	 */
 	Optional<Path> path();
+	/**
+	 * Source type for artifact; a dependency may allow multiple sources. This value allow to know with source
+	 * is used to resolve artifact. Available only if resolution is not failed.
+	 */
 	Optional<DependencySource> source();
+	/**
+	 * Details on resolution failure, if resolution is failed.
+	 */
 	Optional<JplootArtifactFailure> failure();
 
 }
