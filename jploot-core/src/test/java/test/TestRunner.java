@@ -11,7 +11,7 @@ public class TestRunner extends AbstractTest {
 	void testRunner() {
 		JplootRunner runner = new JplootRunner();
 		ImmutableJplootConfig config = jplootConfigBuilder.build();
-		runner.run(config, applicationBuilder.build());
+		runner.run(config, applicationBuilder.build(), new String[0]);
 	}
 
 }

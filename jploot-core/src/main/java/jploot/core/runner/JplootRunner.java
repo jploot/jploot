@@ -3,6 +3,7 @@ package jploot.core.runner;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +26,11 @@ public class JplootRunner {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootRunner.class);
 
-	public void run(JplootConfig config, JplootApplication application) {
+	public void run(JplootConfig config, JplootApplication application, List<String> args) {
+		run(config, application, args.toArray(new String[args.size()]));
+	}
+
+	public void run(JplootConfig config, JplootApplication application, String... args) {
 		LOGGER.debug("Running {} in {}", config, application);
 		// get default runtime
 		JavaRuntime runtime = config.runtimes().iterator().next();
@@ -33,7 +38,7 @@ public class JplootRunner {
 		ArtifactLookups lookups =
 				new ArtifactResolver(new PathHandler()).resolve(config, application);
 		if (lookups.failedLookups().count() == 0) {
-			List<String> command = buildCommandLine(runtime, application, lookups);
+			List<String> command = buildCommandLine(runtime, application, lookups, args);
 			try {
 				Process p = new ProcessBuilder(command).inheritIO().start();
 				int status = p.waitFor();
@@ -55,7 +60,8 @@ public class JplootRunner {
 		}
 	}
 
-	private List<String> buildCommandLine(JavaRuntime runtime, JplootApplication application, ArtifactLookups lookups) {
+	private List<String> buildCommandLine(JavaRuntime runtime, JplootApplication application, ArtifactLookups lookups,
+			String... args) {
 		// lookup java
 		Path java = runtime.javaHome().resolve(Path.of("bin/java"));
 		List<String> command = new ArrayList<>();
@@ -82,6 +88,9 @@ public class JplootRunner {
 		}
 		if (application.mainClass().isPresent()) {
 			command.add(application.mainClass().get());
+		}
+		if (args != null) {
+			command.addAll(Arrays.asList(args));
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Command built: {}", command.stream().collect(Collectors.joining(" ")));

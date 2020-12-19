@@ -55,7 +55,7 @@ public class Main implements Callable<Integer> {
 				.addAllowedSources(DependencySource.MAVEN)
 				.build();
 		JplootConfig config = new JplootConfigLoader(new FileLoader()).load(args);
-		new JplootRunner().run(config, application);
+		new JplootRunner().run(config, application, params);
 		int status = 0;
 		LOGGER.info("jploot ending with status {}", status);
 		return status;
