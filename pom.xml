@@ -16,6 +16,8 @@
 		<module>jploot-core</module>
 		<module>jploot-config</module>
 		<module>dependencies</module>
+		
+		<module>jploot-installer</module>
 	</modules>
 
 	<profiles>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>jploot</groupId>
+		<artifactId>jploot-parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<relativePath>../</relativePath>
+	</parent>
+
+	<artifactId>jploot-installer</artifactId>
+	<packaging>pom</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>jploot</groupId>
+			<artifactId>jploot-cli</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<name>jploot-config</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>jploot</groupId>
+				<artifactId>jploot-maven-plugin</artifactId>
+				<version>0.1-SNAPSHOT</version>
+				<executions>
+					<execution>
+						<id>package</id>
+						<goals>
+							<goal>jploot</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>jploot.cli.Main</mainClass>
+					<modules>
+						<module>java.base</module>
+						<module>java.xml</module>
+						<module>java.desktop</module>
+						<module>java.management</module>
+						<module>java.naming</module>
+					</modules>
+					<options>
+						<option>--strip-debug</option>
+						<option>--no-header-files</option>
+						<option>--compress</option>
+						<option>2</option>
+						<option>--no-man-pages</option>
+					</options>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
