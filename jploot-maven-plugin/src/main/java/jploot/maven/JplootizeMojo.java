@@ -51,7 +51,8 @@ public class JplootizeMojo extends AbstractMojo {
 							"%s:%s:%s:%s:%s",
 							artifact.getGroupId(),
 							artifact.getArtifactId(),
-							artifact.getVersion(),
+							// getVersion is a timestamp for snapshots
+							artifact.getBaseVersion(),
 							artifact.getType(),
 							artifact.getClassifier() != null ? artifact.getType() : ""
 							));
