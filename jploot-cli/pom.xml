@@ -20,6 +20,29 @@
 
 	<name>jploot-cli</name>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>jploot</groupId>
+				<artifactId>jploot-maven-plugin</artifactId>
+				<version>0.1-SNAPSHOT</version>
+				<executions>
+					<execution>
+						<id>jplootize</id>
+						<goals>
+							<goal>jplootize</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>jploot.cli.Main</mainClass>
+					<applicationName>jploot</applicationName>
+					<applicationDescription>jploot manager</applicationDescription>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>jploot</groupId>

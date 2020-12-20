@@ -52,7 +52,7 @@ public class JplootMojo extends AbstractMojo {
 	@Parameter
 	private MavenSession mavenSession;
 
-	@Parameter( defaultValue = "${project}", readonly = true )
+	@Parameter(defaultValue = "${project}", readonly = true)
 	private MavenProject project;
 
 	@Override
@@ -85,7 +85,7 @@ public class JplootMojo extends AbstractMojo {
 			makeselfCommand.add(project.getArtifactId());
 			makeselfCommand.add(Path.of("bin", scriptName).toString());
 			runCommand(getLog(), makeselfCommand);
-		} catch (InterruptedException | IOException e) {
+		} catch (RuntimeException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
 				Thread.currentThread().interrupt();
 			}
