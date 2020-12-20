@@ -1,6 +1,7 @@
 package jploot.cli;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -55,7 +56,7 @@ public class Main implements Callable<Integer> {
 				.addAllowedSources(DependencySource.MAVEN)
 				.build();
 		JplootConfig config = new JplootConfigLoader(new FileLoader()).load(args);
-		new JplootRunner().run(config, application, params);
+		new JplootRunner().run(config, application, params != null ? params : Collections.emptyList());
 		int status = 0;
 		LOGGER.info("jploot ending with status {}", status);
 		return status;
