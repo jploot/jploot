@@ -327,5 +327,50 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>deployment-test</id>
+			<activation>
+				<property>
+					<name>deployment-test</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<distributionManagement>
+				<repository>
+					<id>jploot-releases</id>
+					<layout>default</layout>
+					<url>http://localhost:8081/repository/jploot-releases/</url>
+				</repository>
+				<snapshotRepository>
+					<id>jploot-snapshots</id>
+					<layout>default</layout>
+					<url>http://localhost:8081/repository/jploot-snapshots/</url>
+				</snapshotRepository>
+			</distributionManagement>
+			<repositories>
+				<repository>
+					<id>jploot-releases</id>
+					<layout>default</layout>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<url>http://localhost:8081/repository/jploot-releases/</url>
+				</repository>
+				<repository>
+					<id>jploot-snapshots</id>
+					<layout>default</layout>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<url>http://localhost:8081/repository/jploot-snapshots/</url>
+				</repository>
+			</repositories>
+		</profile>
 	</profiles>
 </project>
