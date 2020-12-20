@@ -40,6 +40,9 @@ public class JplootMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private String mainClass;
 
+	@Parameter(required = true)
+	private String scriptName;
+
 	@Parameter
 	private List<String> modules;
 
@@ -71,7 +74,17 @@ public class JplootMojo extends AbstractMojo {
 			Path jreDirectory = jreDirectory(outputDirectoryPath);
 			buildJre(jdk, jreDirectory);
 			stripJre(jreDirectory);
-			addApplication(jreDirectory);
+			addApplication(jreDirectory, scriptName);
+			
+			List<String> makeselfCommand = new ArrayList<>();
+			Path target = outputDirectoryPath.resolve(scriptName);
+			
+			makeselfCommand.add("makeself");
+			makeselfCommand.add(jreDirectory.toAbsolutePath().toString());
+			makeselfCommand.add(target.toAbsolutePath().toString());
+			makeselfCommand.add(project.getArtifactId());
+			makeselfCommand.add(Path.of("bin", scriptName).toString());
+			runCommand(getLog(), makeselfCommand);
 		} catch (InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
 				Thread.currentThread().interrupt();
@@ -80,7 +93,7 @@ public class JplootMojo extends AbstractMojo {
 		}
 	}
 
-	private void addApplication(Path jreDirectory) throws IOException {
+	private void addApplication(Path jreDirectory, String scriptName) throws IOException {
 		Path targetApplication = jreDirectory.resolve("application");
 		File targetApplicationFile = targetApplication.toFile();
 		if (!targetApplicationFile.exists()) {
@@ -111,7 +124,7 @@ public class JplootMojo extends AbstractMojo {
 				"[[MAINCLASS]]",
 				mainClass
 				);
-		Path launcher = jreDirectory.resolve("bin").resolve("launcher");
+		Path launcher = jreDirectory.resolve("bin").resolve(scriptName);
 		Files.writeString(
 				launcher,
 				launcherScript,
@@ -126,8 +139,11 @@ public class JplootMojo extends AbstractMojo {
 		stripCommand.add("strip");
 		stripCommand.add("-p");
 		stripCommand.add("--strip-unneeded");
-		stripCommand.add(
-				jreDirectory.resolve("lib").resolve("server").resolve("libjvm.so").toAbsolutePath().toString());
+		Files.walk(jreDirectory.resolve("lib"))
+			.filter(p -> p.toFile().isFile() && p.getFileName().toString().endsWith(".so"))
+			.map(Path::toAbsolutePath)
+			.map(Path::toString)
+			.forEach(stripCommand::add);
 		runCommand(getLog(), stripCommand);
 		
 		getLog().info("JRE stripped down");
