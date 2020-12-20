@@ -347,30 +347,42 @@
 					<url>http://localhost:8081/repository/jploot-snapshots/</url>
 				</snapshotRepository>
 			</distributionManagement>
-			<repositories>
-				<repository>
-					<id>jploot-releases</id>
-					<layout>default</layout>
-					<releases>
-						<enabled>true</enabled>
-					</releases>
-					<snapshots>
-						<enabled>false</enabled>
-					</snapshots>
-					<url>http://localhost:8081/repository/jploot-releases/</url>
-				</repository>
-				<repository>
-					<id>jploot-snapshots</id>
-					<layout>default</layout>
-					<releases>
-						<enabled>false</enabled>
-					</releases>
-					<snapshots>
-						<enabled>true</enabled>
-					</snapshots>
-					<url>http://localhost:8081/repository/jploot-snapshots/</url>
-				</repository>
-			</repositories>
 		</profile>
 	</profiles>
+	<repositories>
+		<!-- Currently broken, we use jploot repository -->
+<!-- 		<repository> -->
+<!-- 			<id>mikroskeem-repo</id> -->
+<!-- 			<url>https://repo.wut.ee/repository/mikroskeem-repo/</url> -->
+<!-- 			<layout>default</layout> -->
+<!-- 			<releases> -->
+<!-- 				<enabled>true</enabled> -->
+<!-- 			</releases> -->
+<!-- 			<snapshots> -->
+<!-- 				<enabled>true</enabled> -->
+<!-- 			</snapshots> -->
+<!-- 		</repository> -->
+		<repository>
+			<id>jploot-releases</id>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>http://localhost:8081/repository/jploot-releases/</url>
+		</repository>
+		<repository>
+			<id>jploot-snapshots</id>
+			<layout>default</layout>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<url>http://localhost:8081/repository/jploot-snapshots/</url>
+		</repository>
+	</repositories>
 </project>

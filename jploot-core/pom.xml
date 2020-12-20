@@ -21,6 +21,11 @@
 			<artifactId>jploot-config</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>eu.mikroskeem</groupId>
+			<artifactId>picomaven</artifactId>
+			<version>0.0.5-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 </project>

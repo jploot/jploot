@@ -35,4 +35,8 @@ public interface JplootConfig {
 		return location().getParent();
 	}
 
+	default Path repository() {
+		return jplootBase().resolve("repository");
+	}
+
 }

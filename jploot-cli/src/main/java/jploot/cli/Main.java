@@ -9,7 +9,8 @@ import picocli.CommandLine.Command;
 		description = "Java package management tool",
 		subcommands = {
 				RunCommand.class,
-				BootstrapCommand.class
+				BootstrapCommand.class,
+				InstallCommand.class
 		}
 )
 public class Main {
