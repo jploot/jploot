@@ -40,6 +40,7 @@
 				<configuration>
 					<scriptName>jploot-installer</scriptName>
 					<mainClass>jploot.cli.Main</mainClass>
+					<!-- 24M/50M instead of 64M/85M for Fedora openjdk 11 -->
 					<modules>
 						<module>java.base</module>
 						<module>java.xml</module>
