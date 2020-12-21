@@ -13,7 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jploot.config.loader.FileLoader;
-import jploot.config.loader.JplootConfigLoader;
+import jploot.config.loader.JplootConfigManager;
 import jploot.config.model.ImmutableArgumentConfig;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootConfig;
@@ -34,8 +34,8 @@ class TestLoadConfig {
 	@Test
 	void testDefaultConfig() {
 		initMocks("{}");
-		JplootConfigLoader loader = new JplootConfigLoader(fileLoader);
-		JplootConfig config = loader.load(ImmutableArgumentConfig.builder().location(configPath).build());
+		JplootConfigManager configManager = new JplootConfigManager(fileLoader);
+		JplootConfig config = configManager.load(ImmutableArgumentConfig.builder().location(configPath).build());
 		
 		assertThat(config.location()).isEqualTo(configPath);
 		
@@ -64,8 +64,8 @@ class TestLoadConfig {
 				+ "  - name: test\n"
 				+ "    javaHome: /path/\n"
 				+ "    version: 11\n");
-		JplootConfigLoader loader = new JplootConfigLoader(fileLoader);
-		JplootConfig config = loader.load(ImmutableArgumentConfig.builder().location(configPath).build());
+		JplootConfigManager configManager = new JplootConfigManager(fileLoader);
+		JplootConfig config = configManager.load(ImmutableArgumentConfig.builder().location(configPath).build());
 		
 		assertThat(config.location()).isEqualTo(configPath);
 		

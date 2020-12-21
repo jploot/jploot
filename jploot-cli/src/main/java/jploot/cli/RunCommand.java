@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jploot.config.loader.FileLoader;
-import jploot.config.loader.JplootConfigLoader;
+import jploot.config.loader.JplootConfigManager;
 import jploot.config.model.ArgumentConfig;
 import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
@@ -51,7 +51,7 @@ public class RunCommand implements Callable<Integer> {
 				.addTypes(DependencyType.CLASSPATH)
 				.addAllowedSources(DependencySource.MAVEN)
 				.build();
-		JplootConfig config = new JplootConfigLoader(new FileLoader()).load(args);
+		JplootConfig config = new JplootConfigManager(new FileLoader()).load(args);
 		new JplootRunner().run(config, application, params != null ? params : Collections.emptyList());
 		int status = 0;
 		LOGGER.info("jploot ending with status {}", status);

@@ -7,14 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jploot.config.loader.FileLoader;
-import jploot.config.loader.JplootConfigLoader;
+import jploot.config.loader.JplootConfigManager;
 import jploot.config.model.ArgumentConfig;
 import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableArgumentConfig;
-import jploot.config.model.ImmutableJplootApplication;
-import jploot.config.model.JplootApplication;
+import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootConfig;
+import jploot.config.model.JplootDependency;
 import jploot.core.installer.JplootInstaller;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -45,20 +45,19 @@ public class InstallCommand implements Callable<Integer> {
 		ArgumentConfig args = ImmutableArgumentConfig.builder()
 			.location(Path.of(System.getProperty("user.home"), ".config/jploot/config.yml"))
 			.build();
-		JplootApplication application = ImmutableJplootApplication.builder()
-				.name("jploot")
-				.groupId("jploot")
-				.artifactId("jploot-cli")
+		JplootDependency application = ImmutableJplootDependency.builder()
+				.groupId(groupId)
+				.artifactId(artifactId)
 				.version("1.0-SNAPSHOT")
-				.mainClass("jploot.cli.Test")
 				.addTypes(DependencyType.CLASSPATH)
 				.addAllowedSources(DependencySource.MAVEN)
 				.build();
-		JplootConfig config = new JplootConfigLoader(new FileLoader()).load(args);
+		JplootConfigManager configManager = new JplootConfigManager(new FileLoader());
+		JplootConfig config = configManager.load(args);
 		if (!config.repository().toFile().isDirectory()) {
 			config.repository().toFile().mkdirs();
 		}
-		new JplootInstaller().run(config, application);
+		new JplootInstaller().install(config, configManager, application);
 		int status = 0;
 		LOGGER.info("jploot ending with status {}", status);
 		return status;

@@ -31,8 +31,14 @@ import com.pivovarit.function.exception.WrappedException;
 import eu.mikroskeem.picomaven.DownloadResult;
 import eu.mikroskeem.picomaven.PicoMaven;
 import eu.mikroskeem.picomaven.artifact.Dependency;
+import jploot.config.loader.JplootConfigManager;
+import jploot.config.model.DependencySource;
+import jploot.config.model.DependencyType;
+import jploot.config.model.ImmutableJplootApplication;
+import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
+import jploot.config.model.JplootDependency;
 
 public class JplootInstaller {
 
@@ -50,7 +56,7 @@ public class JplootInstaller {
 		INSTALL_APPLICATION;
 	}
 
-	public void run(JplootConfig config, JplootApplication application) {
+	public void install(JplootConfig config, JplootConfigManager configManager, JplootDependency application) {
 		Path targetRepository = config.repository();
 		Step step = Step.TEMP_DIR;
 		List<Runnable> finallyTasks = new ArrayList<>();
@@ -70,6 +76,21 @@ public class JplootInstaller {
 			downloaded.stream()
 				.filter(this::isJarFile)
 				.forEach(r -> installArtifact(temp, targetRepository, r));
+			List<JplootDependency> jplootDependencies = downloaded.stream()
+					.map(DownloadResult::getDependency)
+					.map(this::asJplootDependency)
+					.collect(Collectors.toUnmodifiableList());
+			JplootApplication installedApplication = ImmutableJplootApplication.builder()
+					.name(properties.getProperty("applicationName"))
+					.description(properties.getProperty("applicationDescription"))
+					.mainClass(properties.getProperty("mainClass"))
+					.groupId(application.groupId())
+					.artifactId(application.artifactId())
+					.version(application.version())
+					.addAllAllowedSources(application.allowedSources())
+					.addAllDependencies(jplootDependencies)
+					.build();
+			configManager.addApplication(config, installedApplication);
 		} catch (RuntimeException e) {
 			Throwable cause = e;
 			if (e instanceof WrappedException) {
@@ -110,13 +131,14 @@ public class JplootInstaller {
 		}
 		try {
 			Files.copy(downloadedArtifact.getArtifactPath(), target);
+			// add in jploot config
 		} catch (IOException e) {
 			throw new RuntimeException(
 					String.format("Error copying %s to %s", downloadedArtifact.getArtifactPath(), target), e);
 		}
 	}
 
-	private Dependency applicationToDependency(JplootApplication application) {
+	private Dependency applicationToDependency(JplootDependency application) {
 		return new Dependency(application.groupId(), application.artifactId(), application.version(),
 				null, false /* no transitive lookup */, Collections.emptyList());
 	}
@@ -163,6 +185,16 @@ public class JplootInstaller {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(String.format("URI format error for jar resource %s", jarUrl), e);
 		}
+	}
+
+	private JplootDependency asJplootDependency(Dependency dependency) {
+		return ImmutableJplootDependency.builder()
+				.groupId(dependency.getGroupId())
+				.artifactId(dependency.getArtifactId())
+				.version(dependency.getVersion())
+				.addAllowedSources(DependencySource.JPLOOT)
+				.addTypes(DependencyType.CLASSPATH)
+				.build();
 	}
 
 	private List<Dependency> collectDependencies(Properties properties) {

@@ -1,10 +1,14 @@
 package jploot.config.loader;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +27,9 @@ import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.config.model.JplootDependency;
 import jploot.config.model.MavenRepository;
+import jploot.config.model.yaml.ImmutableJplootApplicationFile;
+import jploot.config.model.yaml.ImmutableJplootConfigFile;
+import jploot.config.model.yaml.ImmutableJplootDependencyFile;
 import jploot.config.model.yaml.JavaRuntimeFile;
 import jploot.config.model.yaml.JplootApplicationFile;
 import jploot.config.model.yaml.JplootConfigFile;
@@ -35,12 +42,12 @@ import jploot.config.model.yaml.MavenRepositoryFile;
  * file is incomplete.
  * </p>
  */
-public class JplootConfigLoader {
+public class JplootConfigManager {
 
 	private final ObjectMapper mapper;
 	private final FileLoader fileLoader;
 
-	public JplootConfigLoader(FileLoader fileLoader) {
+	public JplootConfigManager(FileLoader fileLoader) {
 		super();
 		this.fileLoader = fileLoader;
 		mapper = new ObjectMapper(new YAMLFactory());
@@ -49,18 +56,77 @@ public class JplootConfigLoader {
 	}
 
 	public JplootConfig load(ArgumentConfig config) {
-		String content = fileLoader.load(config.location(), FileLoader.Mode.YAML);
+		return load(config.location());
+	}
+
+	private JplootConfig load(Path location) {
 		try {
-			JplootConfigFile configFile = mapper.readValue(content, JplootConfigFile.class);
+			JplootConfigFile configFile = loadJplootConfigFile(location);
 			ImmutableJplootConfig.Builder builder = ImmutableJplootConfig.builder()
-					.location(config.location());
+					.location(location);
 			builder.applications(applications(configFile));
 			builder.runtimes(runtimes(configFile));
 			builder.mavenRepositories(mavenRepositories(configFile));
 			return builder.build();
-		} catch (JsonProcessingException|MissingConfigException e) {
+		} catch (MissingConfigException e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	private JplootConfigFile loadJplootConfigFile(Path location) {
+		String content = fileLoader.load(location, FileLoader.Mode.YAML);
+		try {
+			return mapper.readValue(content, JplootConfigFile.class);
+		} catch (JsonProcessingException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public JplootConfig addApplication(JplootConfig config, JplootApplication application) {
+		JplootConfigFile currentConfig = loadJplootConfigFile(config.location());
+		Optional<Set<JplootApplicationFile>> currentApplications = currentConfig.applications();
+		Set<JplootApplicationFile> newApplications = new HashSet<>();
+		if (currentApplications.isPresent()) {
+			newApplications.addAll(currentApplications.get());
+		}
+		newApplications.add(applicationFile(application));
+		JplootConfigFile newConfig = new ImmutableJplootConfigFile.Builder()
+				.from(currentConfig)
+				.applications(newApplications)
+				.build();
+		try {
+			String newConfigContent = mapper.writeValueAsString(newConfig);
+			try (Writer writer = new FileWriter(config.location().toFile())) {
+				writer.write(newConfigContent);
+			} catch (IOException e) {
+				throw new RuntimeException(String.format("Error saving configuration to %s", config.location()), e);
+			}
+			return load(config.location());
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Error serializing configuration", e);
+		}
+	}
+
+	private JplootApplicationFile applicationFile(JplootApplication application) {
+		return new ImmutableJplootApplicationFile.Builder()
+				.name(application.name())
+				.groupId(application.groupId())
+				.artifactId(application.artifactId())
+				.dependencies(application.dependencies().stream().map(this::dependencyFile).collect(Collectors.toSet()))
+				.description(application.description())
+				.mainClass(application.mainClass())
+				.version(application.version())
+				.build();
+	}
+
+	private JplootDependencyFile dependencyFile(JplootDependency dependency) {
+		return new ImmutableJplootDependencyFile.Builder()
+				.groupId(dependency.groupId())
+				.artifactId(dependency.artifactId())
+				.version(dependency.version())
+				.allowedSources(dependency.allowedSources())
+				.types(dependency.types())
+				.build();
 	}
 
 	private Set<JplootApplication> applications(JplootConfigFile from) throws MissingConfigException {
