@@ -16,6 +16,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import jploot.config.model.ArgumentConfig;
+import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
@@ -170,6 +171,7 @@ public class JplootConfigManager {
 		ImmutableJplootApplication.Builder builder = ImmutableJplootApplication.builder();
 		builder.dependencies(dependencies(from.dependencies()));
 		builder.addTypes(DependencyType.CLASSPATH);
+		builder.addAllowedSources(DependencySource.JPLOOT);
 		builder.name(get("name", from.name()));
 		builder.groupId(get("groupId", from.groupId()));
 		builder.artifactId(get("artifactId", from.artifactId()));

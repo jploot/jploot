@@ -87,7 +87,7 @@ public class JplootInstaller {
 					.groupId(application.groupId())
 					.artifactId(application.artifactId())
 					.version(application.version())
-					.addAllAllowedSources(application.allowedSources())
+					.addAllowedSources(DependencySource.JPLOOT)
 					.addAllDependencies(jplootDependencies)
 					.build();
 			configManager.addApplication(config, installedApplication);

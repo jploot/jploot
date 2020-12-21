@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -84,7 +85,7 @@ public class JplootRunner {
 				.collect(Collectors.toSet());
 		if (!classpath.isEmpty()) {
 			command.add("-classpath");
-			classpath.stream().forEach(i -> { command.add(i.path().get().toString()); });
+			command.add(classpath.stream().map(ArtifactLookup::path).map(Optional::get).map(Path::toString).collect(Collectors.joining(":")));
 		}
 		if (application.mainClass().isPresent()) {
 			command.add(application.mainClass().get());

@@ -21,8 +21,6 @@ public class ArtifactResolver {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactResolver.class);
 
-	private static final String JPLOOT_BASE_ARTIFACTS_PATH = "artifacts";
-
 	private final PathHandler pathHandler;
 
 	public ArtifactResolver(PathHandler pathHandler) {
@@ -51,10 +49,10 @@ public class ArtifactResolver {
 				DependencySource source = artifact.allowedSources().iterator().next();
 				switch(source) {
 				case JPLOOT:
-					path = resolveJplootPath(config, application);
+					path = resolveJplootPath(config, artifact);
 					break;
 				case MAVEN:
-					path = resolveMavenPath(config, application);
+					path = resolveMavenPath(config, artifact);
 					break;
 				default:
 					// TODO manage edge-case
@@ -73,30 +71,25 @@ public class ArtifactResolver {
 		return artifactLookupsBuilder.build();
 	}
 
-	private Path resolveJplootPath(JplootConfig config, JplootApplication application) {
-		List<Path> fragments = new ArrayList<>();
-		fragments.add(config.jplootBase());
-		fragments.add(Path.of(JPLOOT_BASE_ARTIFACTS_PATH));
-		fragments.add(Path.of(String.format("%s-%s-%s.jar",
-				application.groupId(),
-				application.artifactId(),
-				application.version())));
-		
-		Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
-		return path;
+	private Path resolveJplootPath(JplootConfig config, JplootArtifact artifact) {
+		return resolvePath(config.repository(), artifact);
 	}
 
-	private Path resolveMavenPath(JplootConfig config, JplootApplication application) {
+	private Path resolveMavenPath(JplootConfig config, JplootArtifact artifact) {
 		// TODO: implement multi-repo
 		MavenRepository repository = config.mavenRepositories().iterator().next();
+		return resolvePath(repository.location(), artifact);
+	}
+
+	private Path resolvePath(Path root, JplootArtifact artifact) {
 		List<Path> fragments = new ArrayList<>();
-		fragments.add(repository.location());
-		fragments.add(Path.of(application.groupId().replace(".", "/")));
-		fragments.add(Path.of(application.artifactId()));
-		fragments.add(Path.of(application.version()));
+		fragments.add(root);
+		fragments.add(Path.of(artifact.groupId().replace(".", "/")));
+		fragments.add(Path.of(artifact.artifactId()));
+		fragments.add(Path.of(artifact.version()));
 		fragments.add(Path.of(String.format("%s-%s.jar",
-				application.artifactId(),
-				application.version())));
+				artifact.artifactId(),
+				artifact.version())));
 		
 		Path path = fragments.stream().reduce((first, second) -> first.resolve(second)).get(); //NOSONAR
 		return path;

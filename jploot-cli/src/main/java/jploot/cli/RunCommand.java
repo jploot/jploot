@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 import jploot.config.loader.FileLoader;
 import jploot.config.loader.JplootConfigManager;
 import jploot.config.model.ArgumentConfig;
-import jploot.config.model.DependencySource;
-import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableArgumentConfig;
-import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.core.runner.JplootRunner;
@@ -33,7 +30,10 @@ public class RunCommand implements Callable<Integer> {
 	@Spec
 	private CommandSpec spec;
 
-	@Parameters
+	@Parameters(index = "0")
+	private String applicationName;
+
+	@Parameters(index = "1..*")
 	List<String> params;
 
 	@Override
@@ -42,16 +42,9 @@ public class RunCommand implements Callable<Integer> {
 		ArgumentConfig args = ImmutableArgumentConfig.builder()
 			.location(Path.of(System.getProperty("user.home"), ".config/jploot/config.yml"))
 			.build();
-		JplootApplication application = ImmutableJplootApplication.builder()
-				.name("jploot")
-				.groupId("jploot")
-				.artifactId("jploot-cli")
-				.version("1.0-SNAPSHOT")
-				.mainClass("jploot.cli.Test")
-				.addTypes(DependencyType.CLASSPATH)
-				.addAllowedSources(DependencySource.MAVEN)
-				.build();
 		JplootConfig config = new JplootConfigManager(new FileLoader()).load(args);
+		JplootApplication application = config.applications().stream()
+				.filter(a -> applicationName.equals(a.name())).findFirst().get();
 		new JplootRunner().run(config, application, params != null ? params : Collections.emptyList());
 		int status = 0;
 		LOGGER.info("jploot ending with status {}", status);
