@@ -3,7 +3,6 @@ package jploot.cli;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +15,14 @@ import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.core.runner.JplootRunner;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.Spec;
 
 @Command(name = "run",
 	mixinStandardHelpOptions = true,
 	description = "Run a jploot application")
-public class RunCommand implements Callable<Integer> {
+public class RunCommand extends AbstractCommand {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RunCommand.class);
-
-	@Spec
-	private CommandSpec spec;
 
 	@Parameters(index = "0")
 	private String applicationName;

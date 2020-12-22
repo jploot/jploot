@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -16,7 +15,7 @@ import picocli.CommandLine.Command;
 @Command(name = "bootstrap",
 	mixinStandardHelpOptions = true,
 	description = "Bootstrap jploot")
-public class BootstrapCommand implements Callable<Integer> {
+public class BootstrapCommand extends AbstractCommand {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapCommand.class);
 

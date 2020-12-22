@@ -1,7 +1,6 @@
 package jploot.cli;
 
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +22,9 @@ import picocli.CommandLine.Spec;
 @Command(name = "install",
 	mixinStandardHelpOptions = false,
 	description = "Install a jploot application")
-public class InstallCommand implements Callable<Integer> {
+public class InstallCommand extends AbstractCommand {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InstallCommand.class);
-
-	@Spec
-	private CommandSpec spec;
 
 	@picocli.CommandLine.Option(names = { "-g", "--groupId" }, required = true)
 	private String groupId;
