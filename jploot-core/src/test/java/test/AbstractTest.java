@@ -2,6 +2,7 @@ package test;
 
 import java.nio.file.Path;
 
+import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
@@ -18,6 +19,7 @@ public class AbstractTest {
 			.name("command")
 			.groupId("command")
 			.artifactId("command")
+			.addAllowedSources(DependencySource.JPLOOT)
 			.version("1.0");
 
 }

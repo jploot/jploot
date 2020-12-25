@@ -4,6 +4,8 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * A Jploot dependency, a jar artifact.
  */
@@ -28,5 +30,10 @@ public interface JplootDependency extends JplootArtifact {
 	@Override
 	@Value.Auxiliary
 	Set<DependencySource> allowedSources();
+
+	default String toDebug() {
+		return addMoreJplootArtifact(addJplootArtifact(MoreObjects.toStringHelper(getClass())))
+				.toString();
+	}
 
 }

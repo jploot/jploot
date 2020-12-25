@@ -19,26 +19,28 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.pivovarit.function.ThrowingSupplier;
 import com.pivovarit.function.exception.WrappedException;
 
 import eu.mikroskeem.picomaven.DownloadResult;
 import eu.mikroskeem.picomaven.PicoMaven;
 import eu.mikroskeem.picomaven.artifact.Dependency;
-import jploot.config.loader.JplootConfigManager;
+import jploot.api.IJplootConfigUpdater;
+import jploot.api.IJplootRepositoryUpdater;
 import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootApplication;
-import jploot.config.model.JplootConfig;
 import jploot.config.model.JplootDependency;
+import jploot.exceptions.InstallException;
 
 public class JplootInstaller {
 
@@ -53,32 +55,47 @@ public class JplootInstaller {
 		DOWNLOAD_APPLICATION,
 		LOADING_APPLICATION_PROPERTIES,
 		DOWNLOAD_APPLICATION_DEPENDENCIES,
+		INSTALL_DEPENDENCIES,
 		INSTALL_APPLICATION;
 	}
 
-	public void install(JplootConfig config, JplootConfigManager configManager, JplootDependency application) {
-		Path targetRepository = config.repository();
+	public void install(
+			IJplootConfigUpdater configUpdater,
+			IJplootRepositoryUpdater repositoryUpdater,
+			JplootDependency application) {
 		Step step = Step.TEMP_DIR;
 		List<Runnable> finallyTasks = new ArrayList<>();
 		try {
 			Path temp = ThrowingSupplier.unchecked(() -> Files.createTempDirectory(null)).get();
 			finallyTasks.add(() -> deleteFolderRecursively(temp));
-			List<Dependency> dependencies = Arrays.asList(applicationToDependency(application));
 			step = Step.DOWNLOAD_APPLICATION;
-			List<DownloadResult> downloaded = downloadDependencies(temp, dependencies);
+			LOGGER.debug("⏳ Application download");
+			ImmutableBiMap.Builder<Dependency, DependencyResult> lookupsBuilder = ImmutableBiMap.builder();
+			List<DependencyResult> dependencies = Arrays.asList(applicationToDependency(application));
+			LOGGER.info("🌐 Application downloaded");
 			step = Step.LOADING_APPLICATION_PROPERTIES;
-			String jarUrl = String.format("jar:file://%s!%s", downloaded.get(0).getArtifactPath(), "/META-INF/jploot/jploot.properties");
+			LOGGER.debug("⏳ Application's dependencies lookup");
+			dependencies.stream().forEach(d -> lookupsBuilder.put(d.dependency, d));
+			ImmutableBiMap<Dependency, DependencyResult> applicationLookup = lookupsBuilder.build();
+			downloadDependencies(temp, applicationLookup);
+			// dependency is successful as downloadDependencies throws exception on download failure
+			Path applicationArtifactJar = applicationLookup.values().stream() //NOSONAR
+					.findFirst().get().downloadResult.getArtifactPath();
+			String jarUrl = String.format("jar:file://%s!%s", applicationArtifactJar, "/META-INF/jploot/jploot.properties");
 			Properties properties = loadProperties(jarUrl);
-			List<Dependency> appDependencies = collectDependencies(properties);
+			BiMap<Dependency, DependencyResult> dependenciesLookup = collectDependencies(properties);
+			LOGGER.info("🔍 Application's dependencies lookup");
 			step = Step.DOWNLOAD_APPLICATION_DEPENDENCIES;
-			downloaded.addAll(downloadDependencies(temp, appDependencies));
-			step = Step.INSTALL_APPLICATION;
-			downloaded.stream()
+			LOGGER.debug("⏳ Application's dependencies download");
+			downloadDependencies(temp, dependenciesLookup);
+			LOGGER.info("🌐 Application's dependencies download");
+			step = Step.INSTALL_DEPENDENCIES;
+			LOGGER.debug("⏳ Application's dependencies installation");
+			dependenciesLookup.values().stream()
 				.filter(this::isJarFile)
-				.forEach(r -> installArtifact(temp, targetRepository, r));
-			List<JplootDependency> jplootDependencies = downloaded.stream()
-					.map(DownloadResult::getDependency)
-					.map(this::asJplootDependency)
+				.forEach(d -> installArtifact(repositoryUpdater, d));
+			List<JplootDependency> jplootDependencies = dependenciesLookup.values().stream()
+					.map(d -> d.jplootDependency)
 					.collect(Collectors.toUnmodifiableList());
 			JplootApplication installedApplication = ImmutableJplootApplication.builder()
 					.name(properties.getProperty("applicationName"))
@@ -90,7 +107,11 @@ public class JplootInstaller {
 					.addAllowedSources(DependencySource.JPLOOT)
 					.addAllDependencies(jplootDependencies)
 					.build();
-			configManager.addApplication(config, installedApplication);
+			LOGGER.info("📌 Application's dependencies installation");
+			step = Step.INSTALL_APPLICATION;
+			LOGGER.debug("⏳ Application installation");
+			configUpdater.addApplication(installedApplication);
+			LOGGER.info("📌 Application installation");
 		} catch (RuntimeException e) {
 			Throwable cause = e;
 			if (e instanceof WrappedException) {
@@ -98,15 +119,17 @@ public class JplootInstaller {
 			}
 			switch (step) {
 			case TEMP_DIR:
-				throw new RuntimeException("Error creating temporary file", cause);
+				throw new InstallException("Error creating temporary file", cause);
 			case DOWNLOAD_APPLICATION:
-				throw new RuntimeException("Download failed", cause);
+				throw new InstallException("Download failed", cause);
 			case LOADING_APPLICATION_PROPERTIES:
-				throw new RuntimeException("Properties loading failed", cause);
+				throw new InstallException("Properties loading failed", cause);
 			case DOWNLOAD_APPLICATION_DEPENDENCIES:
-				throw new RuntimeException("Dependency download failed", cause);
+				throw new InstallException("Dependency download failed", cause);
+			case INSTALL_DEPENDENCIES:
+				throw new InstallException("Dependency install failed", cause);
 			case INSTALL_APPLICATION:
-				throw new RuntimeException("Install failed", cause);
+				throw new InstallException("Install failed", cause);
 			}
 		} finally {
 			for (Runnable finallyTask : finallyTasks) {
@@ -116,31 +139,20 @@ public class JplootInstaller {
 		}
 	}
 
-	private boolean isJarFile(DownloadResult downloadedArtifact) {
-		return downloadedArtifact.getArtifactPath().getFileName().toString().endsWith(".jar");
+	private boolean isJarFile(DependencyResult lookup) {
+		return lookup.downloadResult.getArtifactPath().getFileName().toString().endsWith(".jar");
 	}
 
-	private void installArtifact(Path rootFolder, Path targetRepository, DownloadResult downloadedArtifact) {
-		Path target = targetRepository.resolve(rootFolder.relativize(downloadedArtifact.getArtifactPath()));
-		if (target.toFile().exists()) {
-			return;
-		}
-		Path parent = target.getParent();
-		if (!parent.toFile().isDirectory()) {
-			parent.toFile().mkdirs();
-		}
-		try {
-			Files.copy(downloadedArtifact.getArtifactPath(), target);
-			// add in jploot config
-		} catch (IOException e) {
-			throw new RuntimeException(
-					String.format("Error copying %s to %s", downloadedArtifact.getArtifactPath(), target), e);
-		}
+	private void installArtifact(IJplootRepositoryUpdater updater,
+			DependencyResult dependency) {
+		updater.install(dependency.jplootDependency, dependency.downloadResult.getArtifactPath());
 	}
 
-	private Dependency applicationToDependency(JplootDependency application) {
-		return new Dependency(application.groupId(), application.artifactId(), application.version(),
-				null, false /* no transitive lookup */, Collections.emptyList());
+	private DependencyResult applicationToDependency(JplootDependency jplootDependency) {
+		Dependency dependency = new Dependency(
+				jplootDependency.groupId(), jplootDependency.artifactId(), jplootDependency.version(),
+				null /* classifier */, false /* no transitive lookup */, Collections.emptyList() /* checkums */);
+		return new DependencyResult(dependency, jplootDependency);
 	}
 
 	private void deleteFolderRecursively(Path folder) {
@@ -168,7 +180,7 @@ public class JplootInstaller {
 					return FileVisitResult.CONTINUE;
 				}});
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error deleting temp directory %s", folder), e);
+			LOGGER.error(String.format("Error deleting temp directory %s", folder), e);
 		}
 	}
 
@@ -180,69 +192,61 @@ public class JplootInstaller {
 				properties.load(reader);
 				return properties;
 			} catch (IOException e) {
-				throw new RuntimeException(String.format("Failure reading property file %s", jarUrl), e);
+				throw new InstallException(String.format("Failure reading property file %s", jarUrl), e);
 			}
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(String.format("URI format error for jar resource %s", jarUrl), e);
+			throw new InstallException(String.format("URI format error for jar resource %s", jarUrl), e);
 		}
 	}
 
-	private JplootDependency asJplootDependency(Dependency dependency) {
-		return ImmutableJplootDependency.builder()
-				.groupId(dependency.getGroupId())
-				.artifactId(dependency.getArtifactId())
-				.version(dependency.getVersion())
-				.addAllowedSources(DependencySource.JPLOOT)
-				.addTypes(DependencyType.CLASSPATH)
-				.build();
-	}
-
-	private List<Dependency> collectDependencies(Properties properties) {
+	private BiMap<Dependency, DependencyResult> collectDependencies(Properties properties) {
+		ImmutableBiMap.Builder<Dependency, DependencyResult> builder = ImmutableBiMap.builder();
 		String dependenciesString = (String) properties.getOrDefault("classpathDependencies", "");
-		return Arrays.stream(dependenciesString.split(" "))
+		Arrays.stream(dependenciesString.split(" "))
 				.map(String::strip)
 				.map(JplootInstaller::dependencySpecToDependency)
-				.collect(Collectors.toList());
+				.map(this::applicationToDependency)
+				.forEach(d -> builder.put(d.dependency, d));
+		return builder.build();
 	}
 
-	private static Dependency dependencySpecToDependency(String dependencySpec) {
+	private static JplootDependency dependencySpecToDependency(String dependencySpec) {
 		String[] vars = (dependencySpec + " ").split(":");
 		if (vars.length != 5) {
 			throw new RuntimeException(String.format("Bad format for dependency spec: %s", dependencySpec));
 		}
-		return new Dependency(
-				vars[0], vars[1], vars[2], // GAV
-				// vars[3] TODO: type is ignored
-				vars[4].isBlank() ? null : vars[4], // classifier
-				false,
-				Collections.emptyList()
-		);
+		return ImmutableJplootDependency.builder()
+				.groupId(vars[0]).artifactId(vars[1]).version(vars[2]) // GAV
+				.addTypes(DependencyType.CLASSPATH)
+				.addAllowedSources(DependencySource.JPLOOT)
+				.build();
 	}
 
-	private List<DownloadResult> downloadDependencies(Path folder, List<Dependency> dependencies) {
+	private void downloadDependencies(Path folder, BiMap<Dependency, DependencyResult> dependencies) {
+		List<Dependency> dependenciesList = new ArrayList<>(dependencies.keySet());
 		PicoMaven.Builder picoMavenBuilder = new PicoMaven.Builder()
 				.withDownloadPath(folder)
 				.withRepositories(Arrays.asList(
 						MAVEN_CENTRAL_REPOSITORY,
 						JPLOOT_RELEASES_REPOSITORY,
 						JPLOOT_SNAPSHOTS_REPOSITORY))
-				.withDependencies(dependencies);
-		List<DownloadResult> downloaded = new ArrayList<>();
+				.withDependencies(dependenciesList);
 		try (PicoMaven picoMaven = picoMavenBuilder.build()) {
 			picoMaven.downloadAllArtifacts().values().stream()
 				.map(JplootInstaller::getDownloadResult)
-				.forEach(downloaded::add);
+				.forEach(d -> dependencies.get(d.getDependency()).downloadResult = d);
 		}
-		List<DownloadResult> failedDownloads = downloaded.stream()
-				.filter(Predicate.not(DownloadResult::isSuccess))
+		List<DependencyResult> failedDownloads = dependencies.values().stream()
+				.filter(d -> (d.downloadResult == null || !d.downloadResult.isSuccess()))
 				.collect(Collectors.toList());
 		if (!failedDownloads.isEmpty()) {
-			List<String> failed = failedDownloads.stream().map(DownloadResult::toString).collect(Collectors.toList());
-			throw new RuntimeException(
+			List<String> failed = failedDownloads.stream()
+					.map(d -> d.downloadResult.toString())
+					.collect(Collectors.toList());
+			throw new InstallException(
 					String.format("Dependency lookup failed for %s",
 					String.join(" ", failed)));
 		}
-		return downloaded;
 	}
 
 	private static DownloadResult getDownloadResult(Future<DownloadResult> future) {
@@ -252,8 +256,19 @@ public class JplootInstaller {
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			} catch (ExecutionException e) {
-				throw new RuntimeException(e);
+				throw new InstallException(e);
 			}
+		}
+	}
+
+	private static class DependencyResult {
+		DownloadResult downloadResult;
+		JplootDependency jplootDependency;
+		Dependency dependency;
+		
+		public DependencyResult(Dependency dependency, JplootDependency jplootDependency) {
+			this.dependency = dependency;
+			this.jplootDependency = jplootDependency;
 		}
 	}
 

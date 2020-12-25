@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -34,14 +35,15 @@ import jploot.maven.impl.Jdk;
 @Execute(phase = LifecyclePhase.PACKAGE)
 public class JplootMojo extends AbstractMojo {
 
+	private static final String JPLOOT_BIN = "jploot";
+	private static final String JPLOOT_FOLDER = "jploot";
+	private static final String OUTPUT_FOLDER = "jploot";
+
 	@Parameter(defaultValue = "${project.build.directory}/jploot/", required = true)
 	private String outputDirectory;
 
 	@Parameter(required = true)
 	private String mainClass;
-
-	@Parameter(required = true)
-	private String scriptName;
 
 	@Parameter
 	private List<String> modules;
@@ -71,19 +73,20 @@ public class JplootMojo extends AbstractMojo {
 				throw new MojoFailureException(message);
 			}
 			
-			Path jreDirectory = jreDirectory(outputDirectoryPath);
+			Path jplootHome = outputDirectoryPath.resolve("archive-root");
+			Path jreDirectory = jreDirectory(jplootHome);
 			buildJre(jdk, jreDirectory);
 			stripJre(jreDirectory);
-			addApplication(jreDirectory, scriptName);
+			addJploot(jplootHome);
 			
 			List<String> makeselfCommand = new ArrayList<>();
-			Path target = outputDirectoryPath.resolve(scriptName);
+			Path target = outputDirectoryPath.resolve(OUTPUT_FOLDER);
 			
 			makeselfCommand.add("makeself");
-			makeselfCommand.add(jreDirectory.toAbsolutePath().toString());
+			makeselfCommand.add(jplootHome.toAbsolutePath().toString());
 			makeselfCommand.add(target.toAbsolutePath().toString());
 			makeselfCommand.add(project.getArtifactId());
-			makeselfCommand.add(Path.of("bin", scriptName).toString());
+			makeselfCommand.add(Path.of("bin", JPLOOT_BIN).toString());
 			runCommand(getLog(), makeselfCommand);
 		} catch (RuntimeException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
@@ -93,12 +96,20 @@ public class JplootMojo extends AbstractMojo {
 		}
 	}
 
-	private void addApplication(Path jreDirectory, String scriptName) throws IOException {
-		Path targetApplication = jreDirectory.resolve("application");
+	/**
+	 * Add jploot/ folder with jploot's dependencies. Create a jploot-installer file.
+	 */
+	private void addJploot(Path jplootHome) throws IOException {
+		// prepare JPLOOT_HOME directory
+		// jvm/ + jploot/
+		Path jplootSubfolder = Path.of(JPLOOT_FOLDER);
+		Path targetApplication = jplootHome.resolve(jplootSubfolder);
 		File targetApplicationFile = targetApplication.toFile();
 		if (!targetApplicationFile.exists()) {
 			targetApplicationFile.mkdirs();
 		}
+		
+		// collect artifacts
 		getLog().info("Installed application artifacts:");
 		List<String> classpath = new ArrayList<>();
 		for (Artifact artifact : project.getArtifacts()) {
@@ -113,18 +124,27 @@ public class JplootMojo extends AbstractMojo {
 				getLog().debug(String.format("Ignored artifact: %s", artifact));
 			}
 		}
+		
+		// create installer script
 		String launcherScript;
 		String resourcePath = "/jploot-installer/launcher";
 		launcherScript = readResourceToString(resourcePath);
+		String classpathString = classpath.stream()
+				.map(s -> String.format("\"$JPLOOT_HOME\"/%s/%s", jplootSubfolder, escape(s)))
+				.collect(Collectors.joining(":"));
 		launcherScript = launcherScript.replace(
 				"[[CLASSPATH]]",
-				classpath.stream().map(s -> "\"$JAVA_HOME\"/application/" + escape(s)).collect(Collectors.joining(":"))
+				classpathString
 				);
 		launcherScript = launcherScript.replace(
 				"[[MAINCLASS]]",
 				mainClass
 				);
-		Path launcher = jreDirectory.resolve("bin").resolve(scriptName);
+		Path binDir = jplootHome.resolve("bin");
+		binDir.toFile().mkdirs();
+		Path launcher = binDir.resolve(JPLOOT_BIN);
+		
+		// install script and set execution permission
 		Files.writeString(
 				launcher,
 				launcherScript,
@@ -139,11 +159,12 @@ public class JplootMojo extends AbstractMojo {
 		stripCommand.add("strip");
 		stripCommand.add("-p");
 		stripCommand.add("--strip-unneeded");
-		Files.walk(jreDirectory.resolve("lib"))
-			.filter(p -> p.toFile().isFile() && p.getFileName().toString().endsWith(".so"))
-			.map(Path::toAbsolutePath)
-			.map(Path::toString)
-			.forEach(stripCommand::add);
+		try (Stream<Path> soFiles = Files.walk(jreDirectory.resolve("lib"))) {
+			soFiles.filter(p -> p.toFile().isFile() && p.getFileName().toString().endsWith(".so"))
+				.map(Path::toAbsolutePath)
+				.map(Path::toString)
+				.forEach(stripCommand::add);
+		}
 		runCommand(getLog(), stripCommand);
 		
 		getLog().info("JRE stripped down");
@@ -219,7 +240,7 @@ public class JplootMojo extends AbstractMojo {
 	}
 
 	private static Path jreDirectory(Path outputDirectory) {
-		return outputDirectory.resolve("jre");
+		return outputDirectory.resolve("jvm");
 	}
 
 	private static Jdk resolveJdk() {

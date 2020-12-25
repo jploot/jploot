@@ -1,4 +1,4 @@
-package jploot.config.exceptions;
+package jploot.exceptions;
 
 import java.nio.file.Path;
 

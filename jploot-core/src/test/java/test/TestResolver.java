@@ -14,7 +14,6 @@ import org.assertj.core.description.TextDescription;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.ArtifactLookups;
 import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJplootApplication;
@@ -22,17 +21,19 @@ import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.ImmutableJplootDependency;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
+import jploot.exceptions.JplootArtifactFailure;
 
 class TestResolver extends AbstractTest {
 
 	private PathHandler pathHandler = mock(PathHandler.class);
 	private ArtifactResolver resolver = new ArtifactResolver(pathHandler);
 	private Path jplootBaseLocation = Path.of("my/location");
-	private Path jplootBaseArtifactsLocation = jplootBaseLocation.resolve("artifacts");
 	private String groupId = "groupId";
 	private String artifactId = "artifactId";
 	private String version = "1.0";
-	private String artifactFilename = String.format("%s-%s-%s.jar", groupId, artifactId, version);
+	private Path jplootBaseArtifactsLocation = jplootBaseLocation
+			.resolve("repository").resolve(groupId).resolve(artifactId).resolve(version);
+	private String artifactFilename = String.format("%s-%s.jar", artifactId, version);
 	private ImmutableJplootConfig config = jplootConfigBuilder
 			.location(jplootBaseLocation.resolve("config.yml"))
 			.build();
@@ -90,17 +91,19 @@ class TestResolver extends AbstractTest {
 			.groupId("test")
 			.artifactId("test")
 			.version("1.0")
-			.addAllowedSources(DependencySource.JPLOOT_EMBEDDED)
+			.addAllowedSources(DependencySource.JPLOOT)
 			.build();
 		ImmutableJplootApplication application = applicationBuilder
 				.groupId(groupId)
 				.artifactId(artifactId)
 				.version(version)
+				.addAllowedSources(DependencySource.JPLOOT)
 				.addDependencies(dependency).build();
 		ArtifactLookups lookups = resolver.resolve(config, application);
 		
 		// check call and context args
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(application), eq(config));
+		verify(pathHandler).isValidArtifact(any(), eq(application), eq(dependency), eq(config));
 		Mockito.verifyNoMoreInteractions(pathHandler);
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();

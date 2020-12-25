@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.immutables.value.Value;
 
-import jploot.config.exceptions.JplootArtifactFailure;
+import jploot.exceptions.JplootArtifactFailure;
 
 /**
  * Artifact lookup result

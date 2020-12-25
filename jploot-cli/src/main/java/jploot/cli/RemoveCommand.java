@@ -1,33 +1,33 @@
 package jploot.cli;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jploot.config.model.JplootApplication;
-import jploot.core.runner.JplootRunner;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "run",
+@Command(name = "remove",
 	mixinStandardHelpOptions = true,
-	description = "Run a jploot application")
-public class RunCommand extends AbstractCommand {
+	description = "Remove a jploot application")
+public class RemoveCommand extends AbstractCommand {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RunCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RemoveCommand.class);
 
-	@Parameters(index = "0")
+	@Parameters(
+			index = "0",
+			arity = "1",
+			paramLabel = "APPLICATION",
+			description = { "groupId:artifactId:version or name:version",
+					"Application to remove" }
+	)
 	private String applicationName;
-
-	@Parameters(index = "1..*")
-	List<String> params;
 
 	@Override
 	public Integer doCall() {
-		LOGGER.trace("🐛 Run starting");
+		LOGGER.trace("🐛 Remove starting");
 		Optional<JplootApplication> candidate = findApplication(applicationName);
 		if (candidate.isEmpty()) {
 			LOGGER.error("Application {} cannot be found", applicationName);
@@ -36,8 +36,8 @@ public class RunCommand extends AbstractCommand {
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("🔍 Application found: {}", candidate.get().asSpec());
 			}
-			new JplootRunner().run(config(), candidate.get(), params != null ? params : Collections.emptyList());
-			LOGGER.info("📌 Run done");
+			configUpdater().removeApplication(candidate.get());
+			LOGGER.info("📌 Remove done");
 			return 0;
 		}
 	}

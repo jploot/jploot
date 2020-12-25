@@ -1,16 +1,93 @@
 package jploot.cli;
 
+import java.io.PrintStream;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
+import jploot.api.IJplootConfigUpdater;
+import jploot.api.IJplootRepositoryUpdater;
+import jploot.config.loader.FileLoader;
+import jploot.config.loader.JplootConfigUpdater;
+import jploot.config.loader.JplootRepositoryUpdater;
+import jploot.config.model.JplootApplication;
+import jploot.config.model.JplootConfig;
+import jploot.config.model.JplootDependency;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.Spec;
 
 public abstract class AbstractCommand implements Callable<Integer> {
 
 	@ParentCommand
 	private JplootMain jploot;
 
-	public JplootMain parent() {
+	@Spec
+	CommandSpec spec;
+
+	@Override
+	public final Integer call() {
+		parent().init(needsConfig());
+		return doCall();
+	}
+
+	boolean needsConfig() {
+		return true;
+	}
+
+	private JplootMain parent() {
 		return jploot;
+	}
+
+	protected PrintStream out() {
+		return jploot.out;
+	}
+
+	protected PrintStream err() {
+		return jploot.err;
+	}
+
+	protected JplootConfig config() {
+		return parent().jplootConfig;
+	}
+
+	protected IJplootConfigUpdater configUpdater() {
+		return new JplootConfigUpdater(new FileLoader(), config());
+	}
+
+	protected IJplootRepositoryUpdater repositoryUpdater() {
+		return new JplootRepositoryUpdater(new FileLoader(), config());
+	}
+
+	protected abstract Integer doCall();
+
+	protected Optional<JplootApplication> findApplication(JplootDependency application) {
+		return config().applications().stream().filter(c -> match(c, application)).findFirst();
+	}
+
+	protected Optional<JplootApplication> findApplication(String nameSpec) {
+		return config().applications().stream().filter(c -> match(c, nameSpec)).findFirst();
+	}
+
+	private boolean match(JplootApplication candidate, JplootDependency application) {
+		return candidate.groupId().equals(application.groupId())
+				&& candidate.artifactId().equals(application.artifactId())
+				&& candidate.version().equals(application.version());
+	}
+
+	private boolean match(JplootApplication candidate, String nameSpec) {
+		if (nameSpec.contains(":")) {
+			String[] nameSpecList = nameSpec.split(":");
+			if (nameSpecList.length == 2) {
+				return candidate.name().equals(nameSpecList[0])
+						&& candidate.version().equals(nameSpecList[1]);
+			} else {
+				return candidate.groupId().equals(nameSpecList[0])
+						&& candidate.artifactId().equals(nameSpecList[1])
+						&& candidate.version().equals(nameSpecList[2]);
+			}
+		} else {
+			return candidate.name().equals(nameSpec);
+		}
 	}
 
 }

@@ -95,6 +95,24 @@
 					<exists>maven/jar-test</exists>
 				</file>
 			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<artifactId>maven-surefire-plugin</artifactId>
+							<version>${plugin.surefire.version}</version>
+							<configuration>
+								<includes>
+									<include>**/Test*.java</include>
+									<include>**/*Test.java</include>
+									<include>**/*Tests.java</include>
+									<include>**/*TestCase.java</include>
+								</includes>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
 			<dependencies>
 				<dependency>
 					<groupId>jploot</groupId>

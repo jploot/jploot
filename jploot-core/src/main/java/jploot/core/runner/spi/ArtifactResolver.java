@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jploot.config.exceptions.JplootArtifactFailure;
 import jploot.config.model.ArtifactLookups;
 import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableArtifactLookup;
@@ -15,7 +14,7 @@ import jploot.config.model.ImmutableArtifactLookups;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootArtifact;
 import jploot.config.model.JplootConfig;
-import jploot.config.model.MavenRepository;
+import jploot.exceptions.JplootArtifactFailure;
 
 public class ArtifactResolver {
 
@@ -29,7 +28,9 @@ public class ArtifactResolver {
 	}
 
 	public ArtifactLookups resolve(JplootConfig config, JplootApplication application) {
-		LOGGER.debug("Resolving {} in {}", application, config);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("⏳ Resolving {} dependencies", application.asSpec());
+		}
 		
 		ImmutableArtifactLookups.Builder artifactLookupsBuilder = ImmutableArtifactLookups.builder()
 				.application(application);
@@ -38,47 +39,44 @@ public class ArtifactResolver {
 		artifacts.addAll(application.dependencies());
 		
 		for (JplootArtifact artifact : artifacts) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("⏳ Resolving dependency {}", artifact.asSpec());
+			}
 			ImmutableArtifactLookup.Builder artifactLookupBuilder = ImmutableArtifactLookup.builder()
 					.artifact(artifact);
-			if (artifact.allowedSources().contains(DependencySource.JPLOOT_EMBEDDED)) {
-				// TODO remove placeholder
-				artifactLookupBuilder.source(DependencySource.JPLOOT_EMBEDDED).path(Path.of("placeholder"));
-			} else {
-				Path path;
-				// TODO allow multiple sources
-				DependencySource source = artifact.allowedSources().iterator().next();
-				switch(source) {
-				case JPLOOT:
-					path = resolveJplootPath(config, artifact);
-					break;
-				case MAVEN:
-					path = resolveMavenPath(config, artifact);
-					break;
-				default:
-					// TODO manage edge-case
-					throw new IllegalStateException();
-				}
-				try {
-					pathHandler.isValidArtifact(path, application, artifact, config);
-					artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
-				} catch (JplootArtifactFailure failure) {
-					artifactLookupBuilder.failure(failure);
-				}
-				artifactLookupsBuilder.putLookups(artifact, artifactLookupBuilder.build());
+			Path path;
+			// TODO allow multiple sources
+			DependencySource source = artifact.allowedSources().iterator().next();
+			switch(source) {
+			case JPLOOT:
+				path = resolveJplootPath(config, artifact);
+				break;
+			default:
+				// TODO manage edge-case
+				throw new IllegalStateException();
 			}
+			try {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("⏳ Validating dependency {}", path);
+				}
+				pathHandler.isValidArtifact(path, application, artifact, config);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("🔵 Validating dependency {} done", path);
+				}
+				artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
+			} catch (JplootArtifactFailure failure) {
+				artifactLookupBuilder.failure(failure);
+			}
+			artifactLookupsBuilder.putLookups(artifact, artifactLookupBuilder.build());
 		}
+		
+		LOGGER.trace("🔵 Resolving {} dependencies done", application.asSpec());
 		
 		return artifactLookupsBuilder.build();
 	}
 
 	private Path resolveJplootPath(JplootConfig config, JplootArtifact artifact) {
 		return resolvePath(config.repository(), artifact);
-	}
-
-	private Path resolveMavenPath(JplootConfig config, JplootArtifact artifact) {
-		// TODO: implement multi-repo
-		MavenRepository repository = config.mavenRepositories().iterator().next();
-		return resolvePath(repository.location(), artifact);
 	}
 
 	private Path resolvePath(Path root, JplootArtifact artifact) {

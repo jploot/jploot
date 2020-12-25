@@ -1,4 +1,4 @@
-package jploot.config.exceptions;
+package jploot.exceptions;
 
 public enum ArtifactFailureType {
 	

@@ -1,23 +1,18 @@
 package jploot.cli;
 
-import java.nio.file.Path;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jploot.config.loader.FileLoader;
-import jploot.config.loader.JplootConfigManager;
-import jploot.config.model.ArgumentConfig;
 import jploot.config.model.DependencySource;
 import jploot.config.model.DependencyType;
-import jploot.config.model.ImmutableArgumentConfig;
 import jploot.config.model.ImmutableJplootDependency;
-import jploot.config.model.JplootConfig;
+import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootDependency;
 import jploot.core.installer.JplootInstaller;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Spec;
 
 @Command(name = "install",
 	mixinStandardHelpOptions = false,
@@ -26,37 +21,54 @@ public class InstallCommand extends AbstractCommand {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InstallCommand.class);
 
-	@picocli.CommandLine.Option(names = { "-g", "--groupId" }, required = true)
-	private String groupId;
-
-	@picocli.CommandLine.Option(names = { "-a", "--artifactId" }, required = true)
-	private String artifactId;
-
-	@picocli.CommandLine.Option(names = { "-v", "--version" }, required = true)
-	private String version;
+	/**
+	 * Artifact definition (group, artifact, version) TODO 0.1 use a spec
+	 */
+	@ArgGroup(exclusive = false, multiplicity="1", heading = "Artifact identifier")
+	Artifact artifact;
 
 	@Override
-	public Integer call() throws Exception {
-		LOGGER.info("jploot starting");
-		ArgumentConfig args = ImmutableArgumentConfig.builder()
-			.location(Path.of(System.getProperty("user.home"), ".config/jploot/config.yml"))
-			.build();
+	public Integer doCall() {
+		LOGGER.trace("🐛 Install starting");
+		LOGGER.trace("🐛 Application descriptor building");
 		JplootDependency application = ImmutableJplootDependency.builder()
-				.groupId(groupId)
-				.artifactId(artifactId)
-				.version("1.0-SNAPSHOT")
+				.groupId(artifact.groupId)
+				.artifactId(artifact.artifactId)
+				.version(artifact.version)
 				.addTypes(DependencyType.CLASSPATH)
-				.addAllowedSources(DependencySource.MAVEN)
+				.addAllowedSources(DependencySource.JPLOOT)
 				.build();
-		JplootConfigManager configManager = new JplootConfigManager(new FileLoader());
-		JplootConfig config = configManager.load(args);
-		if (!config.repository().toFile().isDirectory()) {
-			config.repository().toFile().mkdirs();
+		Optional<JplootApplication> candidate = findApplication(application);
+		if (candidate.isPresent()) {
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Application {} is already installed ({})",
+						candidate.get().asSpec(), candidate.get().name());
+			}
+			return 0;
 		}
-		new JplootInstaller().install(config, configManager, application);
-		int status = 0;
-		LOGGER.info("jploot ending with status {}", status);
-		return status;
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("⏳ Install {}", application.asSpec());
+		}
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.trace("🐛 Application descriptor: {}", application.toDebug());
+		}
+		if (!config().repository().toFile().isDirectory()) {
+			config().repository().toFile().mkdirs();
+		}
+		new JplootInstaller().install(configUpdater(), repositoryUpdater(), application);
+		LOGGER.info("📌 Install done");
+		return 0;
+	}
+
+	static class Artifact {
+		@picocli.CommandLine.Option(names = { "-g", "--groupId" }, required = true)
+		private String groupId;
+	
+		@picocli.CommandLine.Option(names = { "-a", "--artifactId" }, required = true)
+		private String artifactId;
+	
+		@picocli.CommandLine.Option(names = { "-v", "--version" }, required = true)
+		private String version;
 	}
 
 }
