@@ -12,8 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-import jploot.config.model.DependencySource;
-import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
@@ -86,8 +84,6 @@ public class AbstractJplootConfigHandling {
 				.groupId(dependency.groupId())
 				.artifactId(dependency.artifactId())
 				.version(dependency.version())
-				.allowedSources(dependency.allowedSources())
-				.types(dependency.types())
 				.build();
 	}
 
@@ -131,8 +127,6 @@ public class AbstractJplootConfigHandling {
 	private JplootApplication application(JplootApplicationFile from) throws ConfigMissingValueException {
 		ImmutableJplootApplication.Builder builder = ImmutableJplootApplication.builder();
 		builder.dependencies(dependencies(from.dependencies()));
-		builder.addTypes(DependencyType.CLASSPATH);
-		builder.addAllowedSources(DependencySource.JPLOOT);
 		builder.name(get("name", from.name()));
 		builder.groupId(get("groupId", from.groupId()));
 		builder.artifactId(get("artifactId", from.artifactId()));
@@ -167,12 +161,9 @@ public class AbstractJplootConfigHandling {
 
 	private JplootDependency dependency(JplootDependencyFile from) throws ConfigMissingValueException {
 		ImmutableJplootDependency.Builder builder = ImmutableJplootDependency.builder();
-		builder.addTypes(DependencyType.CLASSPATH);
 		builder.groupId(get("groupId", from.groupId()));
 		builder.artifactId(get("artifactId", from.artifactId()));
 		builder.version(get("version", from.version()));
-		builder.allowedSources(from.allowedSources().orElse(new HashSet<>()));
-		builder.types(from.types().orElse(new HashSet<>()));
 		return builder.build();
 	}
 

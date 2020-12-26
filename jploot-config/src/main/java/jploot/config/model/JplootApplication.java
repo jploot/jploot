@@ -49,11 +49,11 @@ public interface JplootApplication extends JplootArtifact {
 
 	default String toDebug() {
 		ToStringHelper artifactItems = addJplootArtifact(MoreObjects.toStringHelper(getClass()));
-		ToStringHelper applicationItems = artifactItems
+		return artifactItems
 				.add("mainClass", mainClass())
 				.add("description", description())
-				.add("dependencies", dependencies());
-		return addMoreJplootArtifact(applicationItems).toString();
+				.add("dependencies", dependencies())
+				.toString();
 	}
 
 }

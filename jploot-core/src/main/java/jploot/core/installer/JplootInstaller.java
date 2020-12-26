@@ -34,8 +34,6 @@ import eu.mikroskeem.picomaven.PicoMaven;
 import eu.mikroskeem.picomaven.artifact.Dependency;
 import jploot.api.IJplootConfigUpdater;
 import jploot.api.IJplootRepositoryUpdater;
-import jploot.config.model.DependencySource;
-import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootApplication;
@@ -104,7 +102,6 @@ public class JplootInstaller {
 					.groupId(application.groupId())
 					.artifactId(application.artifactId())
 					.version(application.version())
-					.addAllowedSources(DependencySource.JPLOOT)
 					.addAllDependencies(jplootDependencies)
 					.build();
 			LOGGER.info("📌 Application's dependencies installation");
@@ -217,8 +214,6 @@ public class JplootInstaller {
 		}
 		return ImmutableJplootDependency.builder()
 				.groupId(vars[0]).artifactId(vars[1]).version(vars[2]) // GAV
-				.addTypes(DependencyType.CLASSPATH)
-				.addAllowedSources(DependencySource.JPLOOT)
 				.build();
 	}
 

@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jploot.config.model.ArtifactLookups;
-import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableArtifactLookup;
 import jploot.config.model.ImmutableArtifactLookups;
 import jploot.config.model.JplootApplication;
@@ -44,17 +43,7 @@ public class ArtifactResolver {
 			}
 			ImmutableArtifactLookup.Builder artifactLookupBuilder = ImmutableArtifactLookup.builder()
 					.artifact(artifact);
-			Path path;
-			// TODO allow multiple sources
-			DependencySource source = artifact.allowedSources().iterator().next();
-			switch(source) {
-			case JPLOOT:
-				path = resolveJplootPath(config, artifact);
-				break;
-			default:
-				// TODO manage edge-case
-				throw new IllegalStateException();
-			}
+			Path path = resolveJplootPath(config, artifact);
 			try {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("⏳ Validating dependency {}", path);
@@ -63,7 +52,7 @@ public class ArtifactResolver {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("🔵 Validating dependency {} done", path);
 				}
-				artifactLookupBuilder.source(DependencySource.JPLOOT).path(path);
+				artifactLookupBuilder.path(path);
 			} catch (JplootArtifactFailure failure) {
 				artifactLookupBuilder.failure(failure);
 			}

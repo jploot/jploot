@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import jploot.config.model.ArtifactLookups;
-import jploot.config.model.DependencySource;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.ImmutableJplootDependency;
@@ -62,7 +61,6 @@ class TestResolver extends AbstractTest {
 			assertThat(path)
 				.as(StackedDescription.describeAs(desc, "check resolved path <%s> folder", lookup.path()))
 				.hasParentRaw(jplootBaseArtifactsLocation);
-			assertThat(lookup.source()).contains(DependencySource.JPLOOT);
 		});
 	}
 
@@ -86,19 +84,18 @@ class TestResolver extends AbstractTest {
 	}
 
 	@Test
-	void testResolveJplootEmbedded() throws JplootArtifactFailure {
+	void testResolveFound() throws JplootArtifactFailure {
 		ImmutableJplootDependency dependency = ImmutableJplootDependency.builder()
 			.groupId("test")
 			.artifactId("test")
 			.version("1.0")
-			.addAllowedSources(DependencySource.JPLOOT)
 			.build();
 		ImmutableJplootApplication application = applicationBuilder
 				.groupId(groupId)
 				.artifactId(artifactId)
 				.version(version)
-				.addAllowedSources(DependencySource.JPLOOT)
-				.addDependencies(dependency).build();
+				.addDependencies(dependency)
+				.build();
 		ArtifactLookups lookups = resolver.resolve(config, application);
 		
 		// check call and context args
@@ -121,7 +118,6 @@ class TestResolver extends AbstractTest {
 			assertThat(path)
 				.as(StackedDescription.describeAs(desc, "check resolved path <%s> folder", lookup.path()))
 				.hasParentRaw(jplootBaseArtifactsLocation);
-			assertThat(lookup.source()).contains(DependencySource.JPLOOT);
 		});
 	}
 

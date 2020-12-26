@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import jploot.config.model.ArtifactLookup;
 import jploot.config.model.ArtifactLookups;
-import jploot.config.model.DependencyType;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootArtifact;
@@ -92,8 +91,7 @@ public class JplootRunner {
 		if (!mainClass.isPresent()) {
 			LOGGER.trace("⭕ No mainClass; use -jar option and MANIFEST entry-point");
 			command.add("-jar");
-			Optional<Path> applicationJar = lookups.lookups().get(lookups.application()).path();
-			command.add(applicationJar.get().toString());
+			command.add(lookups.lookups().get(lookups.application()).resolvedPath().toString());
 			applicationInClasspath = false;
 		} else {
 			applicationInClasspath = true;
@@ -117,8 +115,7 @@ public class JplootRunner {
 
 	private boolean isClasspathDependency(JplootApplication excludedApplication, ArtifactLookup lookup) {
 		JplootArtifact artifact = lookup.artifact();
-		return (excludedApplication == null || !artifact.equals(excludedApplication))
-				&& artifact.types().contains(DependencyType.CLASSPATH);
+		return (excludedApplication == null || !artifact.equals(excludedApplication));
 	}
 
 	static class CommandLineCollector implements Collector<String, StringBuilder, String> {

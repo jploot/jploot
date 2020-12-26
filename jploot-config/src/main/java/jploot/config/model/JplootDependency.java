@@ -1,7 +1,5 @@
 package jploot.config.model;
 
-import java.util.Set;
-
 import org.immutables.value.Value;
 
 import com.google.common.base.MoreObjects;
@@ -18,21 +16,9 @@ public interface JplootDependency extends JplootArtifact {
 	String artifactId();
 	@Override
 	String version();
-	@Override
-	/**
-	 * Is this dependency managed as a classpath or module dependency.
-	 */
-	@Value.Auxiliary
-	Set<DependencyType> types();
-	/**
-	 * Which sources are allowed to lookup this dependency.
-	 */
-	@Override
-	@Value.Auxiliary
-	Set<DependencySource> allowedSources();
 
 	default String toDebug() {
-		return addMoreJplootArtifact(addJplootArtifact(MoreObjects.toStringHelper(getClass())))
+		return addJplootArtifact(MoreObjects.toStringHelper(getClass()))
 				.toString();
 	}
 

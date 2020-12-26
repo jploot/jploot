@@ -5,8 +5,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jploot.config.model.DependencySource;
-import jploot.config.model.DependencyType;
 import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootDependency;
@@ -35,8 +33,6 @@ public class InstallCommand extends AbstractCommand {
 				.groupId(artifact.groupId)
 				.artifactId(artifact.artifactId)
 				.version(artifact.version)
-				.addTypes(DependencyType.CLASSPATH)
-				.addAllowedSources(DependencySource.JPLOOT)
 				.build();
 		Optional<JplootApplication> candidate = findApplication(application);
 		if (candidate.isPresent()) {
