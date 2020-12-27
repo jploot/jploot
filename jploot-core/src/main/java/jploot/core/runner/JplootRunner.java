@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -23,11 +22,11 @@ import jploot.config.model.ArtifactLookup;
 import jploot.config.model.ArtifactLookups;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
-import jploot.config.model.JplootArtifact;
 import jploot.config.model.JplootConfig;
 import jploot.core.runner.spi.ArtifactResolver;
 import jploot.core.runner.spi.PathHandler;
 import jploot.exceptions.JplootArtifactFailure;
+import jploot.exceptions.JplootIllegalStateException;
 import jploot.exceptions.RunException;
 
 public class JplootRunner {
@@ -45,7 +44,8 @@ public class JplootRunner {
 		LOGGER.debug("⏳ Application's dependencies lookup");
 		ArtifactLookups lookups =
 				new ArtifactResolver(new PathHandler()).resolve(config, application);
-		if (lookups.failedLookups().count() == 0) {
+		List<ArtifactLookup> failedLookups = lookups.failedLookups();
+		if (failedLookups.isEmpty()) {
 			LOGGER.info("👌 Application's dependencies lookup");
 			List<String> command = buildCommandLine(runtime, application, lookups, args);
 			if (LOGGER.isInfoEnabled()) {
@@ -64,7 +64,7 @@ public class JplootRunner {
 				throw new RunException("Interrupted during execution", e);
 			}
 		} else {
-			for (ArtifactLookup lookup : lookups.failedLookups().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values()) {
+			for (ArtifactLookup lookup : failedLookups) {
 				if (LOGGER.isWarnEnabled()) {
 					LOGGER.warn("{} cannot be resolved: {}",
 							lookup.artifact().asSpec(),
@@ -91,14 +91,15 @@ public class JplootRunner {
 		if (!mainClass.isPresent()) {
 			LOGGER.trace("⭕ No mainClass; use -jar option and MANIFEST entry-point");
 			command.add("-jar");
-			command.add(lookups.lookups().get(lookups.application()).resolvedPath().toString());
+			ArtifactLookup applicationLookup = lookups.find(application).orElseThrow(JplootIllegalStateException::new);
+			command.add(applicationLookup.toString());
 			applicationInClasspath = false;
 		} else {
 			applicationInClasspath = true;
 		}
 		// extract classpath items
-		Set<ArtifactLookup> classpath = lookups.lookups().values().stream()
-				.filter(i -> isClasspathDependency(applicationInClasspath ? null : lookups.application(), i))
+		Set<ArtifactLookup> classpath = lookups
+				.stream(applicationInClasspath ? i -> true : ArtifactLookups.excludeArtifact(application))
 				.collect(Collectors.toSet());
 		if (!classpath.isEmpty()) {
 			command.add("-classpath");
@@ -111,11 +112,6 @@ public class JplootRunner {
 			command.addAll(Arrays.asList(args));
 		}
 		return command;
-	}
-
-	private boolean isClasspathDependency(JplootApplication excludedApplication, ArtifactLookup lookup) {
-		JplootArtifact artifact = lookup.artifact();
-		return (excludedApplication == null || !artifact.equals(excludedApplication));
 	}
 
 	static class CommandLineCollector implements Collector<String, StringBuilder, String> {

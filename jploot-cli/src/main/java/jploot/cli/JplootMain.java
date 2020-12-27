@@ -25,7 +25,7 @@ import picocli.CommandLine.ParseResult;
 	description = "Java package management tool",
 	subcommands = {
 			RunCommand.class,
-			BootstrapCommand.class,
+			InstallerCommand.class,
 			InstallCommand.class,
 			ListCommand.class,
 			RemoveCommand.class

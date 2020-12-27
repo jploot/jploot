@@ -40,6 +40,7 @@
 				<configuration>
 					<scriptName>jploot-installer</scriptName>
 					<mainClass>jploot.cli.JplootMain</mainClass>
+					<args>installer</args>
 					<!-- 24M/50M instead of 64M/85M for Fedora openjdk 11 -->
 					<modules>
 						<module>java.base</module>
@@ -48,13 +49,13 @@
 						<module>java.management</module>
 						<module>java.naming</module>
 					</modules>
-					<options>
+					<jlinkOptions>
 						<option>--strip-debug</option>
 						<option>--no-header-files</option>
 						<option>--compress</option>
 						<option>2</option>
 						<option>--no-man-pages</option>
-					</options>
+					</jlinkOptions>
 				</configuration>
 			</plugin>
 		</plugins>

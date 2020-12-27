@@ -56,7 +56,7 @@ public class ArtifactResolver {
 			} catch (JplootArtifactFailure failure) {
 				artifactLookupBuilder.failure(failure);
 			}
-			artifactLookupsBuilder.putLookups(artifact, artifactLookupBuilder.build());
+			artifactLookupsBuilder.addLookups(artifactLookupBuilder.build());
 		}
 		
 		LOGGER.trace("🔵 Resolving {} dependencies done", application.asSpec());

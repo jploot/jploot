@@ -47,7 +47,7 @@ class TestResolver extends AbstractTest {
 		verify(pathHandler).isValidArtifact(any(), eq(application), eq(application), eq(config));
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();
-		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
+		assertThat(lookups.find(application)).hasValueSatisfying(lookup -> {
 			Description desc = StackedDescription.describeAs("%s", lookup);
 			assertThat(lookup.path())
 				.as(StackedDescription.describeAs(desc, "path resolved path <%s>", lookup.path()))
@@ -74,8 +74,8 @@ class TestResolver extends AbstractTest {
 			.describedAs("resolve(%s, %s, %s) -> %s", config, application, lookups)
 			.satisfies(l -> {
 				assertThat(l).size().isEqualTo(1);
-				assertThat(l).first().satisfies(e -> {
-					assertThat(e.getValue().failure()).contains(exception);
+				assertThat(l).first().satisfies(lookup -> {
+					assertThat(lookup.failure()).contains(exception);
 				});
 			});
 		
@@ -104,7 +104,7 @@ class TestResolver extends AbstractTest {
 		Mockito.verifyNoMoreInteractions(pathHandler);
 		// check artifact path
 		assertThat(lookups.failedLookups()).isEmpty();
-		assertThat(lookups.lookups()).hasEntrySatisfying(application, lookup -> {
+		assertThat(lookups.find(application)).hasValueSatisfying(lookup -> {
 			Description desc = StackedDescription.describeAs("%s", lookup);
 			assertThat(lookup.path())
 				.as(StackedDescription.describeAs(desc, "path resolved path <%s>", lookup.path()))

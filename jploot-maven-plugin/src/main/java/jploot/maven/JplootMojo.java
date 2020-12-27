@@ -35,7 +35,6 @@ import jploot.maven.impl.Jdk;
 @Execute(phase = LifecyclePhase.PACKAGE)
 public class JplootMojo extends AbstractMojo {
 
-	private static final String JPLOOT_BIN = "jploot";
 	private static final String JPLOOT_FOLDER = "jploot";
 	private static final String OUTPUT_FOLDER = "jploot";
 
@@ -45,14 +44,20 @@ public class JplootMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private String mainClass;
 
+	@Parameter(required = true)
+	private String scriptName;
+
 	@Parameter
 	private List<String> modules;
 
 	@Parameter
-	private List<String> options;
+	private List<String> jlinkOptions;
 
 	@Parameter
 	private MavenSession mavenSession;
+
+	@Parameter
+	private String args;
 
 	@Parameter(defaultValue = "${project}", readonly = true)
 	private MavenProject project;
@@ -86,7 +91,7 @@ public class JplootMojo extends AbstractMojo {
 			makeselfCommand.add(jplootHome.toAbsolutePath().toString());
 			makeselfCommand.add(target.toAbsolutePath().toString());
 			makeselfCommand.add(project.getArtifactId());
-			makeselfCommand.add(Path.of("bin", JPLOOT_BIN).toString());
+			makeselfCommand.add(Path.of("bin", scriptName).toString());
 			runCommand(getLog(), makeselfCommand);
 		} catch (RuntimeException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
@@ -140,9 +145,13 @@ public class JplootMojo extends AbstractMojo {
 				"[[MAINCLASS]]",
 				mainClass
 				);
+		launcherScript = launcherScript.replace(
+				"[[ARGS]]",
+				args != null ? args : ""
+				);
 		Path binDir = jplootHome.resolve("bin");
 		binDir.toFile().mkdirs();
-		Path launcher = binDir.resolve(JPLOOT_BIN);
+		Path launcher = binDir.resolve(scriptName);
 		
 		// install script and set execution permission
 		Files.writeString(
@@ -183,8 +192,8 @@ public class JplootMojo extends AbstractMojo {
 		List<String> command = new ArrayList<>();
 		command.add(jdk.jlink().toAbsolutePath().toString());
 		command.add("-v");
-		if (options != null) {
-			options.stream().forEach(command::add);
+		if (jlinkOptions != null) {
+			jlinkOptions.stream().forEach(command::add);
 		}
 		command.add("--module-path");
 		command.add(jdk.jmods().toAbsolutePath().toString());

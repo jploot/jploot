@@ -7,4 +7,4 @@ JAVA_HOME="$JPLOOT_HOME/jvm/"
 
 export JPLOOT_HOME
 
-exec "$JAVA_HOME/bin/java" -cp [[CLASSPATH]] '[[MAINCLASS]]' "$@"
+exec "$JAVA_HOME/bin/java" -cp [[CLASSPATH]] '[[MAINCLASS]]' [[ARGS]] "$@"

@@ -3,7 +3,7 @@
 THIS="$( readlink -f "${BASH_SOURCE[0]}" )"
 DIR="$( dirname "$THIS" )"
 JPLOOT_HOME="$( readlink -f "${DIR}/.." )"
-JAVA_HOME="$JPLOOT_HOME/jvm/"
+JAVA_HOME="[[JAVA_HOME]]"
 
 export JPLOOT_HOME
 
