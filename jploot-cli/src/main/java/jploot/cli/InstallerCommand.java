@@ -71,6 +71,12 @@ public class InstallerCommand extends AbstractCommand {
 			description = { "Use --no-activate to disable bashrc activation" })
 	boolean activate;
 
+	@Option(
+			names = "--reset",
+			defaultValue = "false",
+			description = { "Remove an already existing jploot install" })
+	boolean reset;
+
 	@Override
 	public Integer doCall() {
 		Optional<Path> jplootHomeSource = notBlankString(System.getenv("JPLOOT_HOME")).map(Path::of);
@@ -80,11 +86,16 @@ public class InstallerCommand extends AbstractCommand {
 			return 1;
 		}
 		
-		Path targetJavaHome = target.resolve("jvm");
-		if (javaHome != null && !ignoreJavaHomeEnvironment && !validateJavaHome(javaHome)) {
-			return 1;
-		} else if (javaHome != null && !ignoreJavaHomeEnvironment) {
-			targetJavaHome = javaHome;
+		if (reset) {
+			if (target.toFile().exists()
+					&& target.resolve("jvm").toFile().exists()
+					&& target.resolve("jploot").toFile().exists()) {
+				deleteFolderRecursively(target);
+				LOGGER.info("🔥 Jploot removed: {}", target);
+			} else if (target.toFile().exists()) {
+				LOGGER.error("Target {} exists but not removed as it is not a valid jploot folder. Aborted.", target);
+				return 1;
+			}
 		}
 		
 		if (target.toFile().exists()) {
@@ -92,6 +103,13 @@ public class InstallerCommand extends AbstractCommand {
 		} else {
 			installJploot(jplootHomeSource.get(), target);
 			LOGGER.info("📌 Jploot installed ");
+		}
+		
+		Path targetJavaHome = target.resolve("jvm");
+		if (javaHome != null && !ignoreJavaHomeEnvironment && !validateJavaHome(javaHome)) {
+			return 1;
+		} else if (javaHome != null && !ignoreJavaHomeEnvironment) {
+			targetJavaHome = javaHome;
 		}
 		
 		installJplootScripts(target, targetJavaHome, activate);
@@ -348,6 +366,35 @@ public class InstallerCommand extends AbstractCommand {
 				}});
 		} catch (IOException e) {
 			LOGGER.error(String.format("Error deleting temp directory %s", rootFolder), e);
+		}
+	}
+
+	private void deleteFolderRecursively(Path folder) {
+		try {
+			Files.walkFileTree(folder, new FileVisitor<Path>() {
+				@Override
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					Files.deleteIfExists(file);
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					Files.delete(dir);
+					return FileVisitResult.CONTINUE;
+				}});
+		} catch (IOException e) {
+			LOGGER.error(String.format("Error deleting temp directory %s", folder), e);
 		}
 	}
 
