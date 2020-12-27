@@ -102,7 +102,7 @@ public class InstallerCommand extends AbstractCommand {
 			LOGGER.warn("Target directory already exists. Jploot installation skipped");
 		} else {
 			installJploot(jplootHomeSource.get(), target);
-			LOGGER.info("📌 Jploot installed ");
+			LOGGER.info("📌 Jploot installed in {}", target);
 		}
 		
 		Path targetJavaHome = target.resolve("jvm");
@@ -114,7 +114,6 @@ public class InstallerCommand extends AbstractCommand {
 		
 		installJplootScripts(target, targetJavaHome, activate);
 		
-		LOGGER.info("📌 Jploot installed in {}", target);
 		String activateCommand = String.format("source %s", target.resolve("bin/activate"));
 		if (activate) {
 			if (LOGGER.isInfoEnabled()) {
@@ -182,9 +181,9 @@ public class InstallerCommand extends AbstractCommand {
 					StandardOpenOption.CREATE,
 					StandardOpenOption.TRUNCATE_EXISTING);
 			Files.setPosixFilePermissions(jplootBin, PosixFilePermissions.fromString("rwxr-xr-x"));
-			LOGGER.debug("📌 Jploot runtime set to {}", jplootHome);
+			LOGGER.debug("📌 Jploot runtime set to {}", javaHome);
 		} else {
-			LOGGER.trace("📌 Jploot runtime already set to {}", jplootHome);
+			LOGGER.trace("📌 Jploot runtime already set to {}", javaHome);
 		}
 	}
 
