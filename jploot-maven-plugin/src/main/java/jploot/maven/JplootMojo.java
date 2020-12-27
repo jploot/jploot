@@ -3,6 +3,7 @@ package jploot.maven;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -19,13 +20,14 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
@@ -36,7 +38,6 @@ import jploot.maven.impl.Jdk;
 public class JplootMojo extends AbstractMojo {
 
 	private static final String JPLOOT_FOLDER = "jploot";
-	private static final String OUTPUT_FOLDER = "jploot";
 
 	@Parameter(defaultValue = "${project.build.directory}/jploot/", required = true)
 	private String outputDirectory;
@@ -59,11 +60,29 @@ public class JplootMojo extends AbstractMojo {
 	@Parameter
 	private String args;
 
+	@Parameter(defaultValue = "${project.artifactId}-${project.version}.run", required = true)
+	private String finalName;
+
+	@Parameter(defaultValue = "false", property = "jploot.verbose", required = true)
+	private boolean verbose;
+
+	@Parameter(defaultValue = "false", property = "jploot.skip", required = true)
+	private boolean skip;
+
+	@Parameter(defaultValue = "true", property = "jploot.attach", required = true)
+	private boolean attach;
+
 	@Parameter(defaultValue = "${project}", readonly = true)
 	private MavenProject project;
 
+	@Component
+	private MavenProjectHelper projectHelper;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		if (skip) {
+			getLog().info("Skipping");
+		}
 		try {
 			Path outputDirectoryPath = Path.of(outputDirectory);
 			
@@ -85,19 +104,30 @@ public class JplootMojo extends AbstractMojo {
 			addJploot(jplootHome);
 			
 			List<String> makeselfCommand = new ArrayList<>();
-			Path target = outputDirectoryPath.resolve(OUTPUT_FOLDER);
+			Path makeselfArchive = outputDirectoryPath.resolve(finalName);
 			
 			makeselfCommand.add("makeself");
 			makeselfCommand.add(jplootHome.toAbsolutePath().toString());
-			makeselfCommand.add(target.toAbsolutePath().toString());
-			makeselfCommand.add(project.getArtifactId());
+			makeselfCommand.add(makeselfArchive.toAbsolutePath().toString());
+			makeselfCommand.add(finalName);
 			makeselfCommand.add(Path.of("bin", scriptName).toString());
-			runCommand(getLog(), makeselfCommand);
+			runCommand(makeselfCommand);
+			if (attach) {
+				projectHelper.attachArtifact(project, "run", null, makeselfArchive.toFile());
+			}
 		} catch (RuntimeException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
 				Thread.currentThread().interrupt();
 			}
 			throw new MojoExecutionException("Unexpected failure", e);
+		}
+	}
+
+	void verboseLog(String message) {
+		if (verbose) {
+			getLog().info(message);
+		} else {
+			getLog().debug(message);
 		}
 	}
 
@@ -115,7 +145,7 @@ public class JplootMojo extends AbstractMojo {
 		}
 		
 		// collect artifacts
-		getLog().info("Installed application artifacts:");
+		verboseLog("Installed application artifacts:");
 		List<String> classpath = new ArrayList<>();
 		for (Artifact artifact : project.getArtifacts()) {
 			if (artifact.getArtifactHandler().isAddedToClasspath()) {
@@ -124,9 +154,9 @@ public class JplootMojo extends AbstractMojo {
 				getLog().debug(String.format("copy %s to %s", file.getAbsolutePath(), target));
 				Files.copy(file.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
 				classpath.add(file.getName());
-				getLog().info(String.format("%s (%s)", file.getName(), artifact));
+				verboseLog(String.format("%s (%s)", file.getName(), artifact));
 			} else {
-				getLog().debug(String.format("Ignored artifact: %s", artifact));
+				verboseLog(String.format("Ignored artifact: %s", artifact));
 			}
 		}
 		
@@ -160,7 +190,7 @@ public class JplootMojo extends AbstractMojo {
 				StandardOpenOption.CREATE,
 				StandardOpenOption.TRUNCATE_EXISTING);
 		Files.setPosixFilePermissions(launcher, PosixFilePermissions.fromString("rwxr-xr-x"));
-		getLog().info("JRE launcher script added");
+		verboseLog(String.format("JRE launcher script added: %s", launcher.toAbsolutePath()));
 	}
 
 	private void stripJre(Path jreDirectory) throws IOException, InterruptedException, MojoFailureException {
@@ -174,19 +204,19 @@ public class JplootMojo extends AbstractMojo {
 				.map(Path::toString)
 				.forEach(stripCommand::add);
 		}
-		runCommand(getLog(), stripCommand);
+		runCommand(stripCommand);
 		
-		getLog().info("JRE stripped down");
+		verboseLog("JRE stripped down");
 	}
 
 	private void buildJre(Jdk jdk, Path jreDirectory) throws IOException, InterruptedException, MojoFailureException {
 		// TODO: use a better condition
 		if (jreDirectory.toFile().exists()) {
-			getLog().info(String.format("JRE already present: %s", jreDirectory));
+			getLog().warn(String.format("JRE already present: %s; skipped creation", jreDirectory));
 			return;
 		}
 		if (jreDirectory.toFile().exists()) {
-			getLog().info(String.format("Cleaning existing directory %s", jreDirectory));
+			verboseLog(String.format("Cleaning existing directory %s", jreDirectory));
 			FileUtils.deleteDirectory(jreDirectory.toFile());
 		}
 		List<String> command = new ArrayList<>();
@@ -204,7 +234,7 @@ public class JplootMojo extends AbstractMojo {
 		}
 		command.add("--output");
 		command.add(jreDirectory.toAbsolutePath().toString());
-		runCommand(getLog(), command);
+		runCommand(command);
 		
 		Path targetJava = jreDirectory.resolve("bin").resolve("java");
 		if (!validate(targetJava, JplootMojo::isExecutableFile)) {
@@ -215,7 +245,7 @@ public class JplootMojo extends AbstractMojo {
 			throw new MojoFailureException(message);
 		}
 		
-		getLog().info(String.format("JRE generated in %s", jreDirectory));
+		verboseLog(String.format("JRE generated: %s", jreDirectory));
 	}
 
 	private static String readResourceToString(String resourcePath) throws IOException {
@@ -224,18 +254,24 @@ public class JplootMojo extends AbstractMojo {
 		}
 	}
 
-	private void runCommand(Log log, List<String> command) throws IOException, InterruptedException, MojoFailureException {
+	private void runCommand(List<String> command) throws IOException, InterruptedException, MojoFailureException {
 		String commandString = commandAsString(command);
 		
-		log.info(String.format("Executing %s", commandString));
+		verboseLog(String.format("Executing %s", commandString));
 		
-		Process p = new ProcessBuilder(command).inheritIO().start();
+		ProcessBuilder builder = new ProcessBuilder(command);
+		if (verbose) {
+			builder.inheritIO();
+		} else {
+			builder.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD);
+		}
+		Process p = builder.start();
 		int result = p.waitFor();
 		if (result != 0) {
 			String message = String.format("Command %s failed with status %d",
 					commandString,
 					result);
-			log.error(message);
+			getLog().error(message);
 			throw new MojoFailureException(message);
 		}
 	}
