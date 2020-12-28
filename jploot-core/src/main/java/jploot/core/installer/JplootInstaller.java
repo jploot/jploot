@@ -45,8 +45,7 @@ public class JplootInstaller {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootInstaller.class);
 
 	private static final URI MAVEN_CENTRAL_REPOSITORY = URI.create("https://repo.maven.apache.org/maven2");
-	private static final URI JPLOOT_SNAPSHOTS_REPOSITORY = URI.create("http://localhost:8081/repository/jploot-snapshots/");
-	private static final URI JPLOOT_RELEASES_REPOSITORY = URI.create("http://localhost:8081/repository/jploot-releases/");
+	private static final URI JPLOOT_REPOSITORY = URI.create("https://dl.bintray.com/jploot/jploot");
 
 	private enum Step {
 		TEMP_DIR,
@@ -223,8 +222,7 @@ public class JplootInstaller {
 				.withDownloadPath(folder)
 				.withRepositories(Arrays.asList(
 						MAVEN_CENTRAL_REPOSITORY,
-						JPLOOT_RELEASES_REPOSITORY,
-						JPLOOT_SNAPSHOTS_REPOSITORY))
+						JPLOOT_REPOSITORY))
 				.withDependencies(dependenciesList);
 		try (PicoMaven picoMaven = picoMavenBuilder.build()) {
 			picoMaven.downloadAllArtifacts().values().stream()
