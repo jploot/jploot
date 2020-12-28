@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * <p>Load a file from a path ; abstraction used for:
  * <ul>
@@ -16,6 +19,8 @@ import java.nio.file.Path;
  */
 public class FileLoader {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileLoader.class);
+
 	public enum Mode {
 		/**
 		 * Empty files are replaced by {} content
@@ -24,8 +29,11 @@ public class FileLoader {
 	}
 
 	public String load(Path location, Mode mode) {
+		if (!location.toFile().exists()) {
+			LOGGER.debug("Using an empty config as {} does not exist", location);
+			return "{}";
+		}
 		try {
-			// TODO: behavior for missing file ?
 			String result = Files.readString(location);
 			if (result.strip().isEmpty() && Mode.YAML.equals(mode)) {
 				result = "{}";

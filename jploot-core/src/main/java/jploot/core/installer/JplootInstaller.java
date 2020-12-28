@@ -67,12 +67,11 @@ public class JplootInstaller {
 			LOGGER.debug("⏳ Application download");
 			ImmutableBiMap.Builder<Dependency, DependencyResult> lookupsBuilder = ImmutableBiMap.builder();
 			List<DependencyResult> dependencies = Arrays.asList(applicationToDependency(application));
-			LOGGER.info("🌐 Application downloaded");
-			step = Step.LOADING_APPLICATION_PROPERTIES;
-			LOGGER.debug("⏳ Application's dependencies lookup");
 			dependencies.stream().forEach(d -> lookupsBuilder.put(d.dependency, d));
 			ImmutableBiMap<Dependency, DependencyResult> applicationLookup = lookupsBuilder.build();
 			downloadDependencies(repositories, temp, applicationLookup);
+			LOGGER.info("🌐 Application downloaded");
+			step = Step.LOADING_APPLICATION_PROPERTIES;
 			// dependency is successful as downloadDependencies throws exception on download failure
 			Path applicationArtifactJar = applicationLookup.values().stream() //NOSONAR
 					.findFirst().get().downloadResult.getArtifactPath();
