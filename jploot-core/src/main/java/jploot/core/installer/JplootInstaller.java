@@ -44,9 +44,6 @@ public class JplootInstaller {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootInstaller.class);
 
-	private static final URI MAVEN_CENTRAL_REPOSITORY = URI.create("https://repo.maven.apache.org/maven2");
-	private static final URI JPLOOT_REPOSITORY = URI.create("https://dl.bintray.com/jploot/jploot");
-
 	private enum Step {
 		TEMP_DIR,
 		DOWNLOAD_APPLICATION,
@@ -57,6 +54,7 @@ public class JplootInstaller {
 	}
 
 	public void install(
+			List<URI> repositories,
 			IJplootConfigUpdater configUpdater,
 			IJplootRepositoryUpdater repositoryUpdater,
 			JplootDependency application) {
@@ -74,7 +72,7 @@ public class JplootInstaller {
 			LOGGER.debug("⏳ Application's dependencies lookup");
 			dependencies.stream().forEach(d -> lookupsBuilder.put(d.dependency, d));
 			ImmutableBiMap<Dependency, DependencyResult> applicationLookup = lookupsBuilder.build();
-			downloadDependencies(temp, applicationLookup);
+			downloadDependencies(repositories, temp, applicationLookup);
 			// dependency is successful as downloadDependencies throws exception on download failure
 			Path applicationArtifactJar = applicationLookup.values().stream() //NOSONAR
 					.findFirst().get().downloadResult.getArtifactPath();
@@ -84,7 +82,7 @@ public class JplootInstaller {
 			LOGGER.info("🔍 Application's dependencies lookup");
 			step = Step.DOWNLOAD_APPLICATION_DEPENDENCIES;
 			LOGGER.debug("⏳ Application's dependencies download");
-			downloadDependencies(temp, dependenciesLookup);
+			downloadDependencies(repositories, temp, dependenciesLookup);
 			LOGGER.info("🌐 Application's dependencies download");
 			step = Step.INSTALL_DEPENDENCIES;
 			LOGGER.debug("⏳ Application's dependencies installation");
@@ -216,13 +214,12 @@ public class JplootInstaller {
 				.build();
 	}
 
-	private void downloadDependencies(Path folder, BiMap<Dependency, DependencyResult> dependencies) {
+	private void downloadDependencies(List<URI> repositories,
+			Path folder, BiMap<Dependency, DependencyResult> dependencies) {
 		List<Dependency> dependenciesList = new ArrayList<>(dependencies.keySet());
 		PicoMaven.Builder picoMavenBuilder = new PicoMaven.Builder()
 				.withDownloadPath(folder)
-				.withRepositories(Arrays.asList(
-						MAVEN_CENTRAL_REPOSITORY,
-						JPLOOT_REPOSITORY))
+				.withRepositories(repositories)
 				.withDependencies(dependenciesList);
 		try (PicoMaven picoMaven = picoMavenBuilder.build()) {
 			picoMaven.downloadAllArtifacts().values().stream()

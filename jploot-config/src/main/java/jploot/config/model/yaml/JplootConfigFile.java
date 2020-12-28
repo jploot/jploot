@@ -1,5 +1,6 @@
 package jploot.config.model.yaml;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,5 +24,8 @@ public interface JplootConfigFile {
 	@JsonInclude(value = Include.NON_EMPTY)
 	@Value.Auxiliary
 	Optional<Set<MavenRepositoryFile>> mavenRepositories();
+	@JsonInclude(value = Include.NON_EMPTY)
+	@Value.Auxiliary
+	Optional<List<String>> repositories();
 
 }

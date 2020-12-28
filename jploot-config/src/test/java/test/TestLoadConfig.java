@@ -3,9 +3,12 @@ package test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 
 import org.assertj.core.api.IterableAssert;
+import org.assertj.core.api.ListAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -17,7 +20,6 @@ import jploot.config.loader.FileLoader;
 import jploot.config.loader.JplootConfigLoader;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootConfig;
-import jploot.config.model.MavenRepository;
 
 @ExtendWith(MockitoExtension.class)
 class TestLoadConfig {
@@ -32,7 +34,7 @@ class TestLoadConfig {
 	}
 
 	@Test
-	void testDefaultConfig() {
+	void testDefaultConfig() throws URISyntaxException {
 		initMocks("{}");
 		IJplootConfigLoader configManager = new JplootConfigLoader(fileLoader);
 		JplootConfig config = configManager.load(configPath);
@@ -48,22 +50,21 @@ class TestLoadConfig {
 			assertThat(r.version()).isEqualTo("11");
 		});
 		
-		IterableAssert<MavenRepository> mavenRepositoriesAssertions = assertThat(config.mavenRepositories()).as("%s", config.mavenRepositories());
-		mavenRepositoriesAssertions.hasSize(1);
-		
-		mavenRepositoriesAssertions.first().satisfies(r -> {
-			assertThat(r.name()).isEqualTo("default");
-			assertThat(r.location()).isEqualTo(Path.of(System.getProperty("user.home"), ".m2/repository"));
-		});
+		ListAssert<URI> mavenRepositoriesAssertions = assertThat(config.repositories()).as("%s", config.repositories());
+		mavenRepositoriesAssertions.containsExactly(
+				new URI("https://repo.maven.apache.org/maven2"),
+				new URI("https://dl.bintray.com/jploot/jploot"));
 	}
 
 	@Test
-	void testLoadConfig() {
+	void testLoadConfig() throws URISyntaxException {
 		initMocks("---\n"
 				+ "runtimes:\n"
 				+ "  - name: test\n"
 				+ "    javaHome: /path/\n"
-				+ "    version: 11\n");
+				+ "    version: 11\n"
+				+ "repositories:\n"
+				+ "  - http://localhost:8081/repository/jploot-releases/\n");
 		IJplootConfigLoader configManager = new JplootConfigLoader(fileLoader);
 		JplootConfig config = configManager.load(configPath);
 		
@@ -77,6 +78,12 @@ class TestLoadConfig {
 			assertThat(r.javaHome()).isEqualTo(Path.of("/path"));
 			assertThat(r.version()).isEqualTo("11");
 		});
+		
+		ListAssert<URI> mavenRepositoriesAssertions = assertThat(config.repositories()).as("%s", config.repositories());
+		mavenRepositoriesAssertions.containsExactly(
+				new URI("https://repo.maven.apache.org/maven2"),
+				new URI("https://dl.bintray.com/jploot/jploot"),
+				new URI("http://localhost:8081/repository/jploot-releases/"));
 	}
 
 }

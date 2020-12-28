@@ -1,6 +1,8 @@
 package jploot.config.model;
 
+import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import org.immutables.value.Value;
@@ -26,10 +28,10 @@ public interface JplootConfig {
 	@Value.Auxiliary
 	Set<JplootApplication> applications();
 	/**
-	 * Maven repositories.
+	 * Maven repositories
 	 */
 	@Value.Auxiliary
-	Set<MavenRepository> mavenRepositories();
+	List<URI> repositories();
 
 	default Path jplootBase() {
 		return location().getParent();

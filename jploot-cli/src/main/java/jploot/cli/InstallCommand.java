@@ -51,7 +51,7 @@ public class InstallCommand extends AbstractCommand {
 		if (!config().repository().toFile().isDirectory()) {
 			config().repository().toFile().mkdirs();
 		}
-		new JplootInstaller().install(configUpdater(), repositoryUpdater(), application);
+		new JplootInstaller().install(config().repositories(), configUpdater(), repositoryUpdater(), application);
 		LOGGER.info("📌 Install done");
 		return 0;
 	}

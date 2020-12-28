@@ -1,10 +1,16 @@
-# 0.1 (2020-12-26)
+# 0.1 (2020-12-28)
 
 Basic features:
 
-* local repository:
+* installer:
 
-  * specific local repository
+  * self-extractable archive
+  * stripped down JRE
+
+* repository:
+
+  * specific jploot local repository
+  * remote repository list in config file
 
 * common cli:
 
@@ -12,7 +18,8 @@ Basic features:
 
 * install command:
 
-  * install from a maven gav
+  * install from a maven gav a jar with a
+    META-INF/jploot/jploot.properties descriptor
 
 * remove command:
 
@@ -22,12 +29,6 @@ Basic features:
 
   * list installed applications
 
-* bootstrap command:
+* run command:
 
-  * TODO 0.1
-
-* self-update:
-
-  * install custom JVM (optional)
-  * install jploot
-  * install jploot bin/
+  * run from an application name

@@ -1,7 +1,11 @@
 package jploot.config.loader;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
@@ -16,22 +20,23 @@ import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
 import jploot.config.model.ImmutableJplootDependency;
-import jploot.config.model.ImmutableMavenRepository;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.config.model.JplootDependency;
-import jploot.config.model.MavenRepository;
 import jploot.config.model.yaml.ImmutableJplootApplicationFile;
 import jploot.config.model.yaml.ImmutableJplootDependencyFile;
 import jploot.config.model.yaml.JavaRuntimeFile;
 import jploot.config.model.yaml.JplootApplicationFile;
 import jploot.config.model.yaml.JplootConfigFile;
 import jploot.config.model.yaml.JplootDependencyFile;
-import jploot.config.model.yaml.MavenRepositoryFile;
+import jploot.exceptions.ConfigException;
 import jploot.exceptions.ConfigMissingValueException;
 
 public class AbstractJplootConfigHandling {
+
+	private static final URI MAVEN_CENTRAL_REPOSITORY = URI.create("https://repo.maven.apache.org/maven2");
+	private static final URI JPLOOT_REPOSITORY = URI.create("https://dl.bintray.com/jploot/jploot");
 
 	protected FileLoader fileLoader;
 	protected ObjectMapper mapper;
@@ -51,7 +56,7 @@ public class AbstractJplootConfigHandling {
 					.location(location);
 			builder.applications(applications(configFile));
 			builder.runtimes(runtimes(configFile));
-			builder.mavenRepositories(mavenRepositories(configFile));
+			builder.repositories(repositories(configFile));
 			return builder.build();
 		} catch (ConfigMissingValueException e) {
 			throw new IllegalStateException(e);
@@ -110,16 +115,16 @@ public class AbstractJplootConfigHandling {
 		return runtimes;
 	}
 
-	private Set<MavenRepository> mavenRepositories(JplootConfigFile from) throws ConfigMissingValueException {
-		Set<MavenRepository> repositories = new HashSet<>();
-		for (MavenRepositoryFile i : from.mavenRepositories().orElse(new HashSet<>())) {
-			repositories.add(mavenRepository(i));
+	private List<URI> repositories(JplootConfigFile from) throws ConfigMissingValueException {
+		List<URI> repositories = new ArrayList<>();
+		for (String i : from.repositories().orElse(new ArrayList<>())) {
+			repositories.add(repository(i));
 		}
-		if (repositories.isEmpty()) {
-			repositories.add(ImmutableMavenRepository.builder()
-					.name("default")
-					.location(Path.of(System.getProperty("user.home"), ".m2/repository"))
-					.build());
+		if (!repositories.contains(JPLOOT_REPOSITORY)) {
+			repositories.add(0, JPLOOT_REPOSITORY);
+		}
+		if (!repositories.contains(MAVEN_CENTRAL_REPOSITORY)) {
+			repositories.add(0, MAVEN_CENTRAL_REPOSITORY);
 		}
 		return repositories;
 	}
@@ -144,11 +149,12 @@ public class AbstractJplootConfigHandling {
 		return builder.build();
 	}
 
-	private MavenRepository mavenRepository(MavenRepositoryFile from) throws ConfigMissingValueException {
-		ImmutableMavenRepository.Builder builder = ImmutableMavenRepository.builder();
-		builder.name(get("name", from.name()));
-		builder.location(get("location", from.location()));
-		return builder.build();
+	private URI repository(String from) throws ConfigMissingValueException {
+		try {
+			return new URI(from);
+		} catch (URISyntaxException e) {
+			throw new ConfigException(String.format("Failed to parse repository URI %s", from), e);
+		}
 	}
 
 	private Set<JplootDependency> dependencies(Optional<Set<JplootDependencyFile>> from) throws ConfigMissingValueException {
