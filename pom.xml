@@ -15,6 +15,11 @@
 
 	<name>jploot-parent</name>
 
+	<properties>
+		<jploot.version>0.1-SNAPSHOT</jploot.version>
+		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
+	</properties>
+
 	<modules>
 		<module>jploot-cli</module>
 		<module>jploot-core</module>
