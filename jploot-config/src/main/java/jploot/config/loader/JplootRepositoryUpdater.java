@@ -26,6 +26,8 @@ public class JplootRepositoryUpdater extends AbstractJplootConfigHandling implem
 		Path targetRepository = config.repository();
 		List<String> path = new ArrayList<>();
 		Collections.addAll(path, dependency.groupId().split("\\."));
+		path.add(dependency.artifactId());
+		path.add(dependency.version());
 		path.add(String.format("%s-%s.%s", dependency.artifactId(), dependency.version(), "jar"));
 		Path target = path.stream().<Path>reduce(
 				targetRepository,
