@@ -1,9 +1,12 @@
 package jploot.config.model;
 
-import java.util.Set;
-
 import org.immutables.value.Value;
 
+import com.google.common.base.MoreObjects;
+
+/**
+ * A Jploot dependency, a jar artifact.
+ */
 @Value.Immutable
 public interface JplootDependency extends JplootArtifact {
 
@@ -13,10 +16,10 @@ public interface JplootDependency extends JplootArtifact {
 	String artifactId();
 	@Override
 	String version();
-	@Override
-	@Value.Auxiliary
-	Set<DependencyType> types();
-	@Value.Auxiliary
-	Set<DependencySource> allowedSources();
+
+	default String toDebug() {
+		return addJplootArtifact(MoreObjects.toStringHelper(getClass()))
+				.toString();
+	}
 
 }
