@@ -66,7 +66,8 @@ public class JplootInstaller {
 			step = Step.DOWNLOAD_APPLICATION;
 			LOGGER.debug("⏳ Application download");
 			ImmutableBiMap.Builder<Dependency, DependencyResult> lookupsBuilder = ImmutableBiMap.builder();
-			List<DependencyResult> dependencies = Arrays.asList(applicationToDependency(application));
+			DependencyResult applicationResult = applicationToDependency(application);
+			List<DependencyResult> dependencies = Arrays.asList(applicationResult);
 			dependencies.stream().forEach(d -> lookupsBuilder.put(d.dependency, d));
 			ImmutableBiMap<Dependency, DependencyResult> applicationLookup = lookupsBuilder.build();
 			downloadDependencies(repositories, temp, applicationLookup);
@@ -103,6 +104,7 @@ public class JplootInstaller {
 			LOGGER.info("📌 Application's dependencies installation");
 			step = Step.INSTALL_APPLICATION;
 			LOGGER.debug("⏳ Application installation");
+			installArtifact(repositoryUpdater, applicationResult);
 			configUpdater.addApplication(installedApplication);
 			LOGGER.info("📌 Application installation");
 		} catch (RuntimeException e) {
