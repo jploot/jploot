@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-parent</artifactId>
-		<version>0.1.1-SNAPSHOT</version>
+		<version>0.1.1</version>
 		<relativePath>../</relativePath>
 	</parent>
 
