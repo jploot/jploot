@@ -10,13 +10,13 @@
 	</parent>
 
 	<artifactId>jploot-parent</artifactId>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.1.2</version>
 	<packaging>pom</packaging>
 
 	<name>jploot-parent</name>
 
 	<properties>
-		<jploot.version>0.1.2-SNAPSHOT</jploot.version>
+		<jploot.version>0.1.2</jploot.version>
 		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
 	</properties>
 
