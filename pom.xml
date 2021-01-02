@@ -6,17 +6,17 @@
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-project</artifactId>
-		<version>0.1.3</version>
+		<version>0.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>jploot-parent</artifactId>
-	<version>0.3-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>jploot-parent</name>
 
 	<properties>
-		<jploot.version>0.3-SNAPSHOT</jploot.version>
+		<jploot.version>0.2-SNAPSHOT</jploot.version>
 		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
 	</properties>
 
