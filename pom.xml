@@ -17,6 +17,7 @@
 
 	<properties>
 		<jploot.version>0.2-SNAPSHOT</jploot.version>
+		<jploot.maven.version>0.2-SNAPSHOT</jploot.maven.version>
 		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
 	</properties>
 
@@ -26,6 +27,18 @@
 		<module>jploot-config</module>
 		<module>jploot-installer</module>
 	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>jploot</groupId>
+					<artifactId>jploot-maven-plugin</artifactId>
+					<version>${jploot.maven.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
 	<dependencyManagement>
 		<dependencies>

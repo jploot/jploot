@@ -25,7 +25,6 @@
 			<plugin>
 				<groupId>jploot</groupId>
 				<artifactId>jploot-maven-plugin</artifactId>
-				<version>0.1-SNAPSHOT</version>
 				<executions>
 					<!-- TODO 0.1: drop -->
 					<execution>
