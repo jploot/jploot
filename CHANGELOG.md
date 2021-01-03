@@ -1,8 +1,9 @@
-# 0.2
+# 0.2.0
 
 * add repository commands (add, remove, list)
 * update jploot-maven-plugin to version 0.2 (m2e configuration)
 * replaced bintray repository by nexus.tools.kobalt.fr
+* update jploot-pom (${project.version} problem on some dependencyManagement)
 
 # 0.1.2
 
