@@ -28,7 +28,8 @@ import picocli.CommandLine.ParseResult;
 			InstallerCommand.class,
 			InstallCommand.class,
 			ListCommand.class,
-			RemoveCommand.class
+			RemoveCommand.class,
+			RepositoryCommand.class
 	}
 )
 public class JplootMain implements IExecutionExceptionHandler {

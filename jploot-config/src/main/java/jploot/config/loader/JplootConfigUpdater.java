@@ -3,7 +3,10 @@ package jploot.config.loader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,6 +54,17 @@ public class JplootConfigUpdater extends AbstractJplootConfigHandling implements
 		return updateConfig(currentConfig, b -> b.applications(newApplications));
 	}
 
+	private JplootConfig updateRepositories(Consumer<List<String>> updater) {
+		JplootConfigFile currentConfig = loadJplootConfigFile(config.location());
+		Optional<List<String>> currentRepositories = currentConfig.repositories();
+		List<String> newRepositories = new ArrayList<>();
+		if (currentRepositories.isPresent()) {
+			newRepositories.addAll(currentRepositories.get());
+		}
+		updater.accept(newRepositories);
+		return updateConfig(currentConfig, b -> b.repositories(newRepositories));
+	}
+
 	private JplootConfig updateConfig(JplootConfigFile currentConfig,
 			Consumer<ImmutableJplootConfigFile.Builder> updater) {
 		ImmutableJplootConfigFile.Builder builder = new ImmutableJplootConfigFile.Builder()
@@ -66,5 +80,15 @@ public class JplootConfigUpdater extends AbstractJplootConfigHandling implements
 		} catch (IOException e) {
 			throw new JplootException("Error saving configuration", e);
 		}
+	}
+
+	@Override
+	public JplootConfig addRepository(String url) {
+		return updateRepositories(l -> { if (!l.contains(url)) { l.add(url); } });
+	}
+
+	@Override
+	public JplootConfig removeRepository(String url) {
+		return updateRepositories(l -> l.removeAll(Collections.singletonList(url)));
 	}
 }

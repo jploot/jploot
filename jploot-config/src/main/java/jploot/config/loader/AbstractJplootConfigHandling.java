@@ -36,7 +36,7 @@ import jploot.exceptions.ConfigMissingValueException;
 public class AbstractJplootConfigHandling {
 
 	private static final URI MAVEN_CENTRAL_REPOSITORY = URI.create("https://repo.maven.apache.org/maven2");
-	private static final URI JPLOOT_REPOSITORY = URI.create("https://dl.bintray.com/jploot/jploot");
+	private static final URI JPLOOT_REPOSITORY = URI.create("https://nexus.tools.kobalt.fr/repository/jploot/");
 
 	protected FileLoader fileLoader;
 	protected ObjectMapper mapper;

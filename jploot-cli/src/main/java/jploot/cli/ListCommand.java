@@ -7,7 +7,7 @@ import jploot.config.model.JplootApplication;
 import picocli.CommandLine.Command;
 
 @Command(name = "list",
-	mixinStandardHelpOptions = false,
+	mixinStandardHelpOptions = true,
 	description = "List installed jploot applications")
 public class ListCommand extends AbstractCommand {
 
@@ -23,17 +23,6 @@ public class ListCommand extends AbstractCommand {
 
 	void printApplication(JplootApplication application) {
 		out().println(application.asSpec());
-	}
-
-	static class Artifact {
-		@picocli.CommandLine.Option(names = { "-g", "--groupId" }, required = true)
-		private String groupId;
-	
-		@picocli.CommandLine.Option(names = { "-a", "--artifactId" }, required = true)
-		private String artifactId;
-	
-		@picocli.CommandLine.Option(names = { "-v", "--version" }, required = true)
-		private String version;
 	}
 
 }

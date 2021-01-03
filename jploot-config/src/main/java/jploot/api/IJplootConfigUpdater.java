@@ -9,4 +9,8 @@ public interface IJplootConfigUpdater {
 
 	JplootConfig removeApplication(JplootApplication application);
 
+	JplootConfig addRepository(String url);
+
+	JplootConfig removeRepository(String url);
+
 }

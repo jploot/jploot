@@ -19,14 +19,14 @@ import picocli.CommandLine.Spec;
 public abstract class AbstractCommand implements Callable<Integer> {
 
 	@ParentCommand
-	private JplootMain jploot;
+	private Object parent;
 
 	@Spec
 	CommandSpec spec;
 
 	@Override
 	public final Integer call() {
-		parent().init(needsConfig());
+		jploot().init(needsConfig());
 		return doCall();
 	}
 
@@ -34,20 +34,28 @@ public abstract class AbstractCommand implements Callable<Integer> {
 		return true;
 	}
 
-	private JplootMain parent() {
-		return jploot;
+	private Object parent() {
+		return parent;
+	}
+
+	public JplootMain jploot() {
+		Object currentParent = parent();
+		while (currentParent instanceof AbstractCommand) {
+			currentParent = ((AbstractCommand) currentParent).parent();
+		}
+		return (JplootMain) currentParent;
 	}
 
 	protected PrintStream out() {
-		return jploot.out;
+		return jploot().out;
 	}
 
 	protected PrintStream err() {
-		return jploot.err;
+		return jploot().err;
 	}
 
 	protected JplootConfig config() {
-		return parent().jplootConfig;
+		return jploot().jplootConfig;
 	}
 
 	protected IJplootConfigUpdater configUpdater() {
