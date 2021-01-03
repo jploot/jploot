@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-parent</artifactId>
-		<version>0.1.2</version>
+		<version>0.2.0</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -25,7 +25,6 @@
 			<plugin>
 				<groupId>jploot</groupId>
 				<artifactId>jploot-maven-plugin</artifactId>
-				<version>0.1-SNAPSHOT</version>
 				<executions>
 					<!-- TODO 0.1: drop -->
 					<execution>

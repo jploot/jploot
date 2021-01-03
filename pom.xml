@@ -6,17 +6,18 @@
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-project</artifactId>
-		<version>0.1.3</version>
+		<version>0.1.4</version>
 	</parent>
 
 	<artifactId>jploot-parent</artifactId>
-	<version>0.1.2</version>
+	<version>0.2.0</version>
 	<packaging>pom</packaging>
 
 	<name>jploot-parent</name>
 
 	<properties>
-		<jploot.version>0.1.2</jploot.version>
+		<jploot.version>0.2.0</jploot.version>
+		<jploot.maven.version>0.2.0</jploot.maven.version>
 		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
 	</properties>
 
@@ -26,6 +27,18 @@
 		<module>jploot-config</module>
 		<module>jploot-installer</module>
 	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>jploot</groupId>
+					<artifactId>jploot-maven-plugin</artifactId>
+					<version>${jploot.maven.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
 	<dependencyManagement>
 		<dependencies>

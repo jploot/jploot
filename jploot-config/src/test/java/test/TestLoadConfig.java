@@ -53,7 +53,7 @@ class TestLoadConfig {
 		ListAssert<URI> mavenRepositoriesAssertions = assertThat(config.repositories()).as("%s", config.repositories());
 		mavenRepositoriesAssertions.containsExactly(
 				new URI("https://repo.maven.apache.org/maven2"),
-				new URI("https://dl.bintray.com/jploot/jploot"));
+				new URI("https://nexus.tools.kobalt.fr/repository/jploot/"));
 	}
 
 	@Test
@@ -82,7 +82,7 @@ class TestLoadConfig {
 		ListAssert<URI> mavenRepositoriesAssertions = assertThat(config.repositories()).as("%s", config.repositories());
 		mavenRepositoriesAssertions.containsExactly(
 				new URI("https://repo.maven.apache.org/maven2"),
-				new URI("https://dl.bintray.com/jploot/jploot"),
+				new URI("https://nexus.tools.kobalt.fr/repository/jploot/"),
 				new URI("http://localhost:8081/repository/jploot-releases/"));
 	}
 
