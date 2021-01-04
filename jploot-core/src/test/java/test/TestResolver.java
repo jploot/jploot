@@ -35,6 +35,7 @@ class TestResolver extends AbstractTest {
 	private String artifactFilename = String.format("%s-%s.jar", artifactId, version);
 	private ImmutableJplootConfig config = jplootConfigBuilder
 			.location(jplootBaseLocation.resolve("config.yml"))
+			.jplootHome(jplootBaseLocation)
 			.build();
 	private ImmutableJplootApplication application = applicationBuilder.groupId(groupId)
 			.artifactId(artifactId).version(version).build();

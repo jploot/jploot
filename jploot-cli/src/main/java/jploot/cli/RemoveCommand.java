@@ -37,6 +37,7 @@ public class RemoveCommand extends AbstractCommand {
 				LOGGER.info("🔍 Application found: {}", candidate.get().asSpec());
 			}
 			configUpdater().removeApplication(candidate.get());
+			launcherManager().removeLaunchers(candidate.get());
 			LOGGER.info("📌 Remove done");
 			return 0;
 		}

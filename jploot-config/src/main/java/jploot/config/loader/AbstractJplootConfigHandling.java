@@ -57,6 +57,7 @@ public class AbstractJplootConfigHandling {
 			builder.applications(applications(configFile));
 			builder.runtimes(runtimes(configFile));
 			builder.repositories(repositories(configFile));
+			builder.jplootHome(Path.of(System.getenv("JPLOOT_HOME")));
 			return builder.build();
 		} catch (ConfigMissingValueException e) {
 			throw new IllegalStateException(e);
@@ -81,6 +82,7 @@ public class AbstractJplootConfigHandling {
 				.description(application.description())
 				.mainClass(application.mainClass())
 				.version(application.version())
+				.launchers(application.launchers())
 				.build();
 	}
 
@@ -138,6 +140,7 @@ public class AbstractJplootConfigHandling {
 		builder.version(get("version", from.version())); //NOSONAR
 		builder.description(from.description());
 		builder.mainClass(from.mainClass());
+		builder.launchers(from.launchers());
 		return builder.build();
 	}
 
