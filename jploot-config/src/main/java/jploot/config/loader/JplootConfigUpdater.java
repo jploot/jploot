@@ -3,6 +3,7 @@ package jploot.config.loader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,6 +73,7 @@ public class JplootConfigUpdater extends AbstractJplootConfigHandling implements
 		updater.accept(builder);
 		JplootConfigFile newConfig = builder.build();
 		try {
+			Files.createDirectories(config.location().getParent());
 			String newConfigContent = mapper.writeValueAsString(newConfig);
 			try (Writer writer = new FileWriter(config.location().toFile())) {
 				writer.write(newConfigContent);
