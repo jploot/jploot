@@ -46,6 +46,10 @@ public interface JplootApplication extends JplootArtifact {
 	 * Application main class; may be absent if jar provides a MANIFEST declaration
 	 */
 	Optional<String> mainClass();
+	/**
+	 * Basename for launchers
+	 */
+	Optional<Set<String>> launchers();
 
 	default String toDebug() {
 		ToStringHelper artifactItems = addJplootArtifact(MoreObjects.toStringHelper(getClass()));

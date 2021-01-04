@@ -1,0 +1,5 @@
+#! /bin/bash
+
+APPLICATION='[[APPLICATION]]'
+
+exec jploot -q run "$APPLICATION" -- "$@"

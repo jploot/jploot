@@ -1,5 +1,6 @@
 package jploot.cli;
 
+import java.util.HashSet;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -27,8 +28,8 @@ public class InstallCommand extends AbstractCommand {
 
 	@Override
 	public Integer doCall() {
-		LOGGER.trace("🐛 Install starting");
-		LOGGER.trace("🐛 Application descriptor building");
+		LOGGER.trace("🐛 Install starting.");
+		LOGGER.trace("🐛 Application descriptor building.");
 		JplootDependency application = ImmutableJplootDependency.builder()
 				.groupId(artifact.groupId)
 				.artifactId(artifact.artifactId)
@@ -43,16 +44,19 @@ public class InstallCommand extends AbstractCommand {
 			return 0;
 		}
 		if (LOGGER.isInfoEnabled()) {
-			LOGGER.info("⏳ Install {}", application.asSpec());
+			LOGGER.info("⏳ Install {}.", application.asSpec());
 		}
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.trace("🐛 Application descriptor: {}", application.toDebug());
+			LOGGER.trace("🐛 Application descriptor: {}.", application.toDebug());
 		}
 		if (!config().repository().toFile().isDirectory()) {
 			config().repository().toFile().mkdirs();
 		}
-		new JplootInstaller().install(config().repositories(), configUpdater(), repositoryUpdater(), application);
-		LOGGER.info("📌 Install done");
+		JplootApplication installedApplication = new JplootInstaller().install(
+				config().applications(), config().repositories(),
+				configUpdater(), repositoryUpdater(), launcherManager(), application);
+		LOGGER.info("📌 Installed launchers: {}.", installedApplication.launchers().orElse(new HashSet<>()));
+		LOGGER.info("📌 Install done.");
 		return 0;
 	}
 

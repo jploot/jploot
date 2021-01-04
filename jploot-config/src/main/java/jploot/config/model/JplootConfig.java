@@ -18,6 +18,10 @@ public interface JplootConfig {
 	 */
 	Path location();
 	/**
+	 * Jploot runtime location
+	 */
+	Path jplootHome();
+	/**
 	 * Available runtimes.
 	 */
 	@Value.Auxiliary

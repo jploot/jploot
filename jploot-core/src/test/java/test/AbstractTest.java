@@ -9,6 +9,7 @@ import jploot.config.model.ImmutableJplootConfig;
 public class AbstractTest {
 	protected ImmutableJplootConfig.Builder jplootConfigBuilder = ImmutableJplootConfig.builder()
 			.location(Path.of("./jploot.yaml"))
+			.jplootHome(Path.of("."))
 			.addRuntimes(ImmutableJavaRuntime.builder()
 					.name("default")
 					.javaHome(Path.of("/usr/lib/jvm/java-11"))

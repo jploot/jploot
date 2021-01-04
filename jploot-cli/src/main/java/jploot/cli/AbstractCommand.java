@@ -5,9 +5,11 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import jploot.api.IJplootConfigUpdater;
+import jploot.api.IJplootLauncherManager;
 import jploot.api.IJplootRepositoryUpdater;
 import jploot.config.loader.FileLoader;
 import jploot.config.loader.JplootConfigUpdater;
+import jploot.config.loader.JplootLauncherManager;
 import jploot.config.loader.JplootRepositoryUpdater;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
@@ -60,6 +62,10 @@ public abstract class AbstractCommand implements Callable<Integer> {
 
 	protected IJplootConfigUpdater configUpdater() {
 		return new JplootConfigUpdater(new FileLoader(), config());
+	}
+
+	protected IJplootLauncherManager launcherManager() {
+		return new JplootLauncherManager(config());
 	}
 
 	protected IJplootRepositoryUpdater repositoryUpdater() {

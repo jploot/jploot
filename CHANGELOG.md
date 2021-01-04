@@ -1,3 +1,7 @@
+# 0.3.0
+
+* install: add launcher generation
+
 # 0.2.0
 
 * add repository commands (add, remove, list)

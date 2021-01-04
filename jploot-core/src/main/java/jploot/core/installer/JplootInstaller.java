@@ -15,8 +15,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ import eu.mikroskeem.picomaven.DownloadResult;
 import eu.mikroskeem.picomaven.PicoMaven;
 import eu.mikroskeem.picomaven.artifact.Dependency;
 import jploot.api.IJplootConfigUpdater;
+import jploot.api.IJplootLauncherManager;
 import jploot.api.IJplootRepositoryUpdater;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootDependency;
@@ -53,10 +56,12 @@ public class JplootInstaller {
 		INSTALL_APPLICATION;
 	}
 
-	public void install(
+	public JplootApplication install(
+			Set<JplootApplication> installedApplications,
 			List<URI> repositories,
 			IJplootConfigUpdater configUpdater,
 			IJplootRepositoryUpdater repositoryUpdater,
+			IJplootLauncherManager launcherManager,
 			JplootDependency application) {
 		Step step = Step.TEMP_DIR;
 		List<Runnable> finallyTasks = new ArrayList<>();
@@ -92,21 +97,35 @@ public class JplootInstaller {
 			List<JplootDependency> jplootDependencies = dependenciesLookup.values().stream()
 					.map(d -> d.jplootDependency)
 					.collect(Collectors.toUnmodifiableList());
+			Set<String> launcherCandidates = new HashSet<String>();
+			Set<String> launchers = new HashSet<String>();
+			String applicationName = properties.getProperty("applicationName");
+			launcherCandidates.add(String.format("%s-%s", applicationName, application.version()));
+			launcherCandidates.add(String.format("%s", applicationName));
+			for (String candidate : launcherCandidates) {
+				if (installedApplications.stream()
+						.noneMatch(a -> a.launchers().map(l -> l.contains(candidate)).orElse(false))) {
+					launchers.add(candidate);
+				}
+			}
 			JplootApplication installedApplication = ImmutableJplootApplication.builder()
-					.name(properties.getProperty("applicationName"))
+					.name(applicationName)
 					.description(properties.getProperty("applicationDescription"))
 					.mainClass(properties.getProperty("mainClass"))
 					.groupId(application.groupId())
 					.artifactId(application.artifactId())
 					.version(application.version())
 					.addAllDependencies(jplootDependencies)
+					.launchers(launchers)
 					.build();
 			LOGGER.info("📌 Application's dependencies installation");
 			step = Step.INSTALL_APPLICATION;
 			LOGGER.debug("⏳ Application installation");
 			installArtifact(repositoryUpdater, applicationResult);
+			installLaunchers(launcherManager, installedApplication);
 			configUpdater.addApplication(installedApplication);
 			LOGGER.info("📌 Application installation");
+			return installedApplication;
 		} catch (RuntimeException e) {
 			Throwable cause = e;
 			if (e instanceof WrappedException) {
@@ -124,6 +143,7 @@ public class JplootInstaller {
 			case INSTALL_DEPENDENCIES:
 				throw new InstallException("Dependency install failed", cause);
 			case INSTALL_APPLICATION:
+			default:
 				throw new InstallException("Install failed", cause);
 			}
 		} finally {
@@ -136,6 +156,10 @@ public class JplootInstaller {
 
 	private boolean isJarFile(DependencyResult lookup) {
 		return lookup.downloadResult.getArtifactPath().getFileName().toString().endsWith(".jar");
+	}
+
+	private void installLaunchers(IJplootLauncherManager launcherManager, JplootApplication application) {
+		launcherManager.addLaunchers(application);
 	}
 
 	private void installArtifact(IJplootRepositoryUpdater updater,
