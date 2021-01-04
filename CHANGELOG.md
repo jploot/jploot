@@ -1,3 +1,7 @@
+# 0.3.1
+
+* config: create parent directory before saving config
+
 # 0.3.0
 
 * install: add launcher generation
