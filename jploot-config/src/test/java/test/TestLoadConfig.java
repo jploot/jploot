@@ -9,6 +9,7 @@ import java.nio.file.Path;
 
 import org.assertj.core.api.IterableAssert;
 import org.assertj.core.api.ListAssert;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -28,6 +29,11 @@ class TestLoadConfig {
 	private FileLoader fileLoader;
 
 	private Path configPath = Path.of("marker");
+
+	@BeforeAll
+	static void init() {
+		System.setProperty("jploot.home", "/fake/directory");
+	}
 
 	void initMocks(String yaml) {
 		Mockito.when(fileLoader.load(eq(configPath), eq(FileLoader.Mode.YAML))).thenReturn(yaml);

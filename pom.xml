@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>jploot</groupId>
 		<artifactId>jploot-project</artifactId>
-		<version>0.1.4</version>
+		<version>0.1.5</version>
 	</parent>
 
 	<artifactId>jploot-parent</artifactId>
@@ -17,8 +17,10 @@
 
 	<properties>
 		<jploot.version>0.3.1-SNAPSHOT</jploot.version>
-		<jploot.maven.version>0.2.0</jploot.maven.version>
+		<jploot.maven.version>0.3.0</jploot.maven.version>
 		<gitflow.versionProperty>jploot.version</gitflow.versionProperty>
+		<!-- Override this property to use an alternate JAVA_HOME for installer archive -->
+		<jploot.installer.javaHome></jploot.installer.javaHome>
 	</properties>
 
 	<modules>
@@ -74,5 +76,19 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+	<repositories>
+		<repository>
+			<id>jploot</id>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>https://nexus.tools.kobalt.fr/repository/jploot/</url>
+		</repository>
+	</repositories>
 
 </project>

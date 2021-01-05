@@ -1,3 +1,8 @@
+# 0.4.0
+
+* fix tests when JPLOOT\_HOME is not set
+* use OpenJ9 JVM for installer
+
 # 0.3.1
 
 * config: create parent directory before saving config

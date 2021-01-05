@@ -6,5 +6,6 @@ JPLOOT_HOME="$( readlink -f "${DIR}/.." )"
 JAVA_HOME="[[JAVA_HOME]]"
 
 export JPLOOT_HOME
+JAVA_ARGS="-Xquickstart -Xshareclasses -XX:TieredStopAtLevel=1 -XX:CICompilerCount=1 -XX:+UseSerialGC -Xms50m -Xmx50m -XX:-UsePerfData"
 
-exec "$JAVA_HOME/bin/java" -cp [[CLASSPATH]] '[[MAINCLASS]]' "$@"
+exec "$JAVA_HOME/bin/java" $JAVA_ARGS -cp [[CLASSPATH]] '[[MAINCLASS]]' "$@"
