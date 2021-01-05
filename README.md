@@ -9,3 +9,10 @@ programs. Primary goals of jploot are:
 * non privileged tool (installation are done in user folders)
 * allow multi-version installs
 * allow asset reuse: jar reuse between programs, local java installation reuse
+
+# Build requirement
+
+* jploot-installer build:
+  * needs jploot.installer.javaHome property to be set with a OpenJ9 JVM path
+    (current version uses -Xshareclasses specific option)
+  * needs makeself command

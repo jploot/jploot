@@ -57,7 +57,15 @@ public class AbstractJplootConfigHandling {
 			builder.applications(applications(configFile));
 			builder.runtimes(runtimes(configFile));
 			builder.repositories(repositories(configFile));
-			builder.jplootHome(Path.of(System.getenv("JPLOOT_HOME")));
+			String jplootHomeEnv = System.getenv("JPLOOT_HOME");
+			String jplootHomeProperty = System.getProperty("jploot.home", null);
+			if (jplootHomeEnv != null) {
+				builder.jplootHome(Path.of(jplootHomeEnv));
+			} else if (jplootHomeProperty != null) {
+				builder.jplootHome(Path.of(jplootHomeProperty));
+			} else {
+				throw new ConfigMissingValueException("Both JPLOOT_HOME and jploot.home");
+			}
 			return builder.build();
 		} catch (ConfigMissingValueException e) {
 			throw new IllegalStateException(e);
