@@ -18,7 +18,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>jploot</groupId>
-			<artifactId>jploot-config</artifactId>
+			<artifactId>jploot-model</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>eu.mikroskeem</groupId>
@@ -56,6 +56,10 @@
 				<dependency>
 					<groupId>org.mockito</groupId>
 					<artifactId>mockito-core</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.mockito</groupId>
+					<artifactId>mockito-junit-jupiter</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.assertj</groupId>

@@ -4,7 +4,7 @@ import java.nio.file.Path;
 
 import jploot.config.model.JplootConfig;
 
-public interface IJplootConfigLoader {
+public interface IConfigLoader {
 
 	JplootConfig load(Path config);
 

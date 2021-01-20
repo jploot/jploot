@@ -3,7 +3,7 @@ package jploot.api;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 
-public interface IJplootConfigUpdater {
+public interface IConfigUpdater {
 
 	JplootConfig addApplication(JplootApplication application);
 

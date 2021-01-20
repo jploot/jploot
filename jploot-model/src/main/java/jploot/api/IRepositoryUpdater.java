@@ -4,7 +4,7 @@ import java.nio.file.Path;
 
 import jploot.config.model.JplootDependency;
 
-public interface IJplootRepositoryUpdater {
+public interface IRepositoryUpdater {
 
 	public enum InstallResult {
 		INSTALLED,

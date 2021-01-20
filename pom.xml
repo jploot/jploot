@@ -26,7 +26,7 @@
 	<modules>
 		<module>jploot-cli</module>
 		<module>jploot-core</module>
-		<module>jploot-config</module>
+		<module>jploot-model</module>
 		<module>jploot-installer</module>
 	</modules>
 
@@ -57,12 +57,12 @@
 			<dependency>
 				<groupId>jploot</groupId>
 				<artifactId>jploot-core</artifactId>
-				<version>${project.version}</version>
+				<version>${jploot.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>jploot</groupId>
-				<artifactId>jploot-config</artifactId>
-				<version>${project.version}</version>
+				<artifactId>jploot-model</artifactId>
+				<version>${jploot.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.vdurmont</groupId>

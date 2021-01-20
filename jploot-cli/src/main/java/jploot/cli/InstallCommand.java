@@ -47,7 +47,7 @@ public class InstallCommand extends AbstractCommand {
 			LOGGER.info("⏳ Install {}.", application.asSpec());
 		}
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.trace("🐛 Application descriptor: {}.", application.toDebug());
+			LOGGER.trace("🐛 Application descriptor: {}.", application);
 		}
 		if (!config().repository().toFile().isDirectory()) {
 			config().repository().toFile().mkdirs();

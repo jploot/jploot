@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jploot.api.IFileLoader;
+
 /**
  * <p>Load a file from a path ; abstraction used for:
  * <ul>
@@ -17,17 +19,11 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>As whole content is loaded in a string, must be used only for low-weight files.</p>
  */
-public class FileLoader {
+public class FileLoader implements IFileLoader {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileLoader.class);
 
-	public enum Mode {
-		/**
-		 * Empty files are replaced by {} content
-		 */
-		YAML;
-	}
-
+	@Override
 	public String load(Path location, Mode mode) {
 		if (!location.toFile().exists()) {
 			LOGGER.debug("Using an empty config as {} does not exist", location);

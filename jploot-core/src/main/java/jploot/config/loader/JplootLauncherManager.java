@@ -13,12 +13,12 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jploot.api.IJplootLauncherManager;
+import jploot.api.ILauncherManager;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.exceptions.InstallException;
 
-public class JplootLauncherManager implements IJplootLauncherManager {
+public class JplootLauncherManager implements ILauncherManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JplootLauncherManager.class);
 

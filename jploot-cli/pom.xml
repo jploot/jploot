@@ -77,7 +77,7 @@
 		</dependency>
 		<dependency>
 			<groupId>jploot</groupId>
-			<artifactId>jploot-config</artifactId>
+			<artifactId>jploot-model</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.vdurmont</groupId>

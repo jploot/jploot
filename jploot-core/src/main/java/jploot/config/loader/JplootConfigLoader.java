@@ -2,7 +2,8 @@ package jploot.config.loader;
 
 import java.nio.file.Path;
 
-import jploot.api.IJplootConfigLoader;
+import jploot.api.IConfigLoader;
+import jploot.api.IFileLoader;
 import jploot.config.model.JplootConfig;
 
 /**
@@ -11,9 +12,9 @@ import jploot.config.model.JplootConfig;
  * file is incomplete.
  * </p>
  */
-public class JplootConfigLoader extends AbstractJplootConfigHandling implements IJplootConfigLoader {
+public class JplootConfigLoader extends AbstractJplootConfigHandling implements IConfigLoader {
 
-	public JplootConfigLoader(FileLoader fileLoader) {
+	public JplootConfigLoader(IFileLoader fileLoader) {
 		super(fileLoader);
 	}
 

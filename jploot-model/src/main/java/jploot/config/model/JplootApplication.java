@@ -5,9 +5,6 @@ import java.util.Set;
 
 import org.immutables.value.Value;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
-
 /**
  * A Jploot application, made of a main artifact, dependencies and a main class.
  */
@@ -36,28 +33,23 @@ public interface JplootApplication extends JplootArtifact {
 	/**
 	 * Application description; for command-line documentation.
 	 */
+	@Value.Redacted
 	Optional<String> description();
 	/**
 	 * Application dependencies.
 	 * @return
 	 */
+	@Value.Redacted
 	Set<JplootDependency> dependencies();
 	/**
 	 * Application main class; may be absent if jar provides a MANIFEST declaration
 	 */
+	@Value.Redacted
 	Optional<String> mainClass();
 	/**
 	 * Basename for launchers
 	 */
+	@Value.Redacted
 	Optional<Set<String>> launchers();
-
-	default String toDebug() {
-		ToStringHelper artifactItems = addJplootArtifact(MoreObjects.toStringHelper(getClass()));
-		return artifactItems
-				.add("mainClass", mainClass())
-				.add("description", description())
-				.add("dependencies", dependencies())
-				.toString();
-	}
 
 }

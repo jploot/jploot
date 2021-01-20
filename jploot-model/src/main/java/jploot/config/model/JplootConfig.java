@@ -24,21 +24,21 @@ public interface JplootConfig {
 	/**
 	 * Available runtimes.
 	 */
-	@Value.Auxiliary
+	@Value.Redacted
 	Set<JavaRuntime> runtimes();
 	/**
 	 * Available applications.
 	 */
-	@Value.Auxiliary
+	@Value.Redacted
 	Set<JplootApplication> applications();
 	/**
 	 * Maven repositories
 	 */
-	@Value.Auxiliary
+	@Value.Redacted
 	List<URI> repositories();
 
 	default Path jplootBase() {
-		return location().getParent();
+		return Path.of(".").toAbsolutePath().relativize(location().toAbsolutePath().getParent());
 	}
 
 	default Path repository() {

@@ -2,7 +2,7 @@ package jploot.api;
 
 import jploot.config.model.JplootApplication;
 
-public interface IJplootLauncherManager {
+public interface ILauncherManager {
 
 	public void addLaunchers(JplootApplication application);
 

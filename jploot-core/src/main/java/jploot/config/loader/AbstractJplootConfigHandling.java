@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+import jploot.api.IFileLoader;
 import jploot.config.model.ImmutableJavaRuntime;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootConfig;
@@ -38,10 +39,10 @@ public class AbstractJplootConfigHandling {
 	private static final URI MAVEN_CENTRAL_REPOSITORY = URI.create("https://repo.maven.apache.org/maven2");
 	private static final URI JPLOOT_REPOSITORY = URI.create("https://nexus.tools.kobalt.fr/repository/jploot/");
 
-	protected FileLoader fileLoader;
+	protected IFileLoader fileLoader;
 	protected ObjectMapper mapper;
 
-	public AbstractJplootConfigHandling(FileLoader fileLoader) {
+	public AbstractJplootConfigHandling(IFileLoader fileLoader) {
 		super();
 		this.fileLoader = fileLoader;
 		mapper = new ObjectMapper(new YAMLFactory());
@@ -73,7 +74,7 @@ public class AbstractJplootConfigHandling {
 	}
 
 	protected JplootConfigFile loadJplootConfigFile(Path location) {
-		String content = fileLoader.load(location, FileLoader.Mode.YAML);
+		String content = fileLoader.load(location, IFileLoader.Mode.YAML);
 		try {
 			return mapper.readValue(content, JplootConfigFile.class);
 		} catch (JsonProcessingException e) {

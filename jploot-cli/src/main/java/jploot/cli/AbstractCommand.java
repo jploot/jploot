@@ -4,9 +4,9 @@ import java.io.PrintStream;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import jploot.api.IJplootConfigUpdater;
-import jploot.api.IJplootLauncherManager;
-import jploot.api.IJplootRepositoryUpdater;
+import jploot.api.IConfigUpdater;
+import jploot.api.ILauncherManager;
+import jploot.api.IRepositoryUpdater;
 import jploot.config.loader.FileLoader;
 import jploot.config.loader.JplootConfigUpdater;
 import jploot.config.loader.JplootLauncherManager;
@@ -60,15 +60,15 @@ public abstract class AbstractCommand implements Callable<Integer> {
 		return jploot().jplootConfig;
 	}
 
-	protected IJplootConfigUpdater configUpdater() {
+	protected IConfigUpdater configUpdater() {
 		return new JplootConfigUpdater(new FileLoader(), config());
 	}
 
-	protected IJplootLauncherManager launcherManager() {
+	protected ILauncherManager launcherManager() {
 		return new JplootLauncherManager(config());
 	}
 
-	protected IJplootRepositoryUpdater repositoryUpdater() {
+	protected IRepositoryUpdater repositoryUpdater() {
 		return new JplootRepositoryUpdater(new FileLoader(), config());
 	}
 

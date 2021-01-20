@@ -16,8 +16,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jploot.api.IJplootConfigLoader;
-import jploot.config.loader.FileLoader;
+import jploot.api.IConfigLoader;
+import jploot.api.IFileLoader;
 import jploot.config.loader.JplootConfigLoader;
 import jploot.config.model.JavaRuntime;
 import jploot.config.model.JplootConfig;
@@ -26,7 +26,7 @@ import jploot.config.model.JplootConfig;
 class TestLoadConfig {
 
 	@Mock
-	private FileLoader fileLoader;
+	private IFileLoader fileLoader;
 
 	private Path configPath = Path.of("marker");
 
@@ -36,13 +36,13 @@ class TestLoadConfig {
 	}
 
 	void initMocks(String yaml) {
-		Mockito.when(fileLoader.load(eq(configPath), eq(FileLoader.Mode.YAML))).thenReturn(yaml);
+		Mockito.when(fileLoader.load(eq(configPath), eq(IFileLoader.Mode.YAML))).thenReturn(yaml);
 	}
 
 	@Test
 	void testDefaultConfig() throws URISyntaxException {
 		initMocks("{}");
-		IJplootConfigLoader configManager = new JplootConfigLoader(fileLoader);
+		IConfigLoader configManager = new JplootConfigLoader(fileLoader);
 		JplootConfig config = configManager.load(configPath);
 		
 		assertThat(config.location()).isEqualTo(configPath);
@@ -71,7 +71,7 @@ class TestLoadConfig {
 				+ "    version: 11\n"
 				+ "repositories:\n"
 				+ "  - http://localhost:8081/repository/jploot-releases/\n");
-		IJplootConfigLoader configManager = new JplootConfigLoader(fileLoader);
+		IConfigLoader configManager = new JplootConfigLoader(fileLoader);
 		JplootConfig config = configManager.load(configPath);
 		
 		assertThat(config.location()).isEqualTo(configPath);

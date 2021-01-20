@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jploot.api.IJplootRepositoryUpdater;
+import jploot.api.IRepositoryUpdater;
 import jploot.config.model.JplootConfig;
 import jploot.config.model.JplootDependency;
 import jploot.exceptions.InstallException;
 
-public class JplootRepositoryUpdater extends AbstractJplootConfigHandling implements IJplootRepositoryUpdater {
+public class JplootRepositoryUpdater extends AbstractJplootConfigHandling implements IRepositoryUpdater {
 
 	JplootConfig config;
 

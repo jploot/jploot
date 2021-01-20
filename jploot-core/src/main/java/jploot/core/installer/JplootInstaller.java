@@ -34,9 +34,9 @@ import com.pivovarit.function.exception.WrappedException;
 import eu.mikroskeem.picomaven.DownloadResult;
 import eu.mikroskeem.picomaven.PicoMaven;
 import eu.mikroskeem.picomaven.artifact.Dependency;
-import jploot.api.IJplootConfigUpdater;
-import jploot.api.IJplootLauncherManager;
-import jploot.api.IJplootRepositoryUpdater;
+import jploot.api.IConfigUpdater;
+import jploot.api.ILauncherManager;
+import jploot.api.IRepositoryUpdater;
 import jploot.config.model.ImmutableJplootApplication;
 import jploot.config.model.ImmutableJplootDependency;
 import jploot.config.model.JplootApplication;
@@ -59,9 +59,9 @@ public class JplootInstaller {
 	public JplootApplication install(
 			Set<JplootApplication> installedApplications,
 			List<URI> repositories,
-			IJplootConfigUpdater configUpdater,
-			IJplootRepositoryUpdater repositoryUpdater,
-			IJplootLauncherManager launcherManager,
+			IConfigUpdater configUpdater,
+			IRepositoryUpdater repositoryUpdater,
+			ILauncherManager launcherManager,
 			JplootDependency application) {
 		Step step = Step.TEMP_DIR;
 		List<Runnable> finallyTasks = new ArrayList<>();
@@ -158,11 +158,11 @@ public class JplootInstaller {
 		return lookup.downloadResult.getArtifactPath().getFileName().toString().endsWith(".jar");
 	}
 
-	private void installLaunchers(IJplootLauncherManager launcherManager, JplootApplication application) {
+	private void installLaunchers(ILauncherManager launcherManager, JplootApplication application) {
 		launcherManager.addLaunchers(application);
 	}
 
-	private void installArtifact(IJplootRepositoryUpdater updater,
+	private void installArtifact(IRepositoryUpdater updater,
 			DependencyResult dependency) {
 		updater.install(dependency.jplootDependency, dependency.downloadResult.getArtifactPath());
 	}

@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import jploot.api.IJplootConfigUpdater;
+import jploot.api.IConfigUpdater;
 import jploot.config.model.JplootApplication;
 import jploot.config.model.JplootConfig;
 import jploot.config.model.yaml.ImmutableJplootConfigFile;
@@ -25,7 +25,7 @@ import jploot.exceptions.JplootException;
  * Control configuration updates.
  * </p>
  */
-public class JplootConfigUpdater extends AbstractJplootConfigHandling implements IJplootConfigUpdater {
+public class JplootConfigUpdater extends AbstractJplootConfigHandling implements IConfigUpdater {
 
 	JplootConfig config;
 
